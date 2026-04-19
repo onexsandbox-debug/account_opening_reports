@@ -16,20 +16,20 @@
 
     .container {
       margin: auto;
-      width: 85%;
-      max-width: 1100px;
-      background: rgba(255,255,255,0.7);
-      backdrop-filter: blur(10px);
-      border-radius: 16px;
+      width: 80%;
+      max-width: 1000px;
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(8px);
+      border-radius: 14px;
       display: flex;
       overflow: hidden;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
     }
 
-    /* LEFT PANEL */
+    /* LEFT */
     .left {
       flex: 1;
-      padding: 50px;
+      padding: 35px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -37,29 +37,29 @@
 
     .left img {
       width: 100%;
-      max-width: 380px;
-      margin-bottom: 20px;
+      max-width: 320px;
+      margin-bottom: 15px;
     }
 
     .left h2 {
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 700;
       color: #1f1f1f;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .left p {
-      font-size: 14px;
-      line-height: 1.6;
+      font-size: 13px;
       color: #6b6b6b;
-      max-width: 420px;
+      line-height: 1.5;
+      max-width: 400px;
     }
 
-    /* RIGHT PANEL */
+    /* RIGHT */
     .right {
       flex: 1;
-      padding: 50px;
-      background: rgba(255,255,255,0.85);
+      padding: 35px;
+      background: rgba(255,255,255,0.9);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -67,49 +67,51 @@
 
     .right h2 {
       text-align: center;
-      margin-bottom: 30px;
-      font-size: 26px;
+      margin-bottom: 20px;
+      font-size: 24px;
       color: #1f1f1f;
-    }
-
-    .input-box {
-      width: 100%;
-      margin-bottom: 15px;
     }
 
     input {
       width: 100%;
-      padding: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
       border-radius: 8px;
       border: none;
       background: #e9edf3;
       font-size: 14px;
-      outline: none;
     }
 
-    .row {
+    /* TERMS ROW FIX */
+    .terms-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 12px;
       margin-bottom: 15px;
+      font-size: 13px;
     }
 
-    .row a {
-      text-decoration: none;
-      color: #777;
-    }
-
-    .checkbox {
+    .terms-left {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      white-space: nowrap; /* 🔥 forces single line */
       color: #1f1f1f;
+    }
+
+    .terms-left input {
+      margin: 0;
+    }
+
+    .terms-row a {
+      text-decoration: none;
+      color: #777;
+      font-size: 12px;
     }
 
     button {
       width: 100%;
-      padding: 14px;
+      padding: 12px;
       border-radius: 8px;
       border: none;
       background: #D56269;
@@ -117,10 +119,6 @@
       font-weight: 600;
       cursor: pointer;
       font-size: 14px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
     }
 
     button:hover {
@@ -143,7 +141,7 @@
 
   <!-- LEFT -->
   <div class="left">
-    <img src="https://warcssm.1xtel.co/media/media/6ec15cca-8846-4236-aa7d-aa992bf37e7f/mkt+vector.jpg">
+    <img src="https://warcssm.1xtel.co/media/media/7a9e93e6-8300-49d9-90d0-04590d2e1420/mkt_vector-removebg-preview.png">
     
     <h2>Messaging solutions to scale your business</h2>
     
@@ -159,28 +157,20 @@
 
     <h2>Sign In</h2>
 
-    <div class="input-box">
-      <input type="email" id="email" placeholder="Email">
-    </div>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
 
-    <div class="input-box">
-      <input type="password" id="password" placeholder="Password">
-    </div>
-
-    <div class="row">
-      <div class="checkbox">
+    <div class="terms-row">
+      <div class="terms-left">
         <input type="checkbox" checked>
-        <span>I accept Terms</span>
+        <span>I accept the Terms and Conditions</span>
       </div>
-
       <a href="#">Forgot Password?</a>
     </div>
 
     <div id="error" class="error"></div>
 
-    <button onclick="login()">
-      Sign In →
-    </button>
+    <button onclick="login()">Sign In →</button>
 
   </div>
 
