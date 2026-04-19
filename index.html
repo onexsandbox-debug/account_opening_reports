@@ -11,7 +11,7 @@
       font-family: 'Manrope', sans-serif;
       background: #f4f6f9;
       display: flex;
-      font-size: 13px; /* ✅ Added */
+      font-size: 13px;
     }
 
     .sidebar {
@@ -38,7 +38,7 @@
       margin-bottom: 5px;
       cursor: pointer;
       border-radius: 6px;
-      font-size: 13px; /* ✅ Added */
+      font-size: 13px;
     }
 
     .menu div:hover {
@@ -64,7 +64,7 @@
     }
 
     .header h3 {
-      font-size: 16px; /* ✅ Reduced */
+      font-size: 16px;
     }
 
     .logout-btn {
@@ -74,7 +74,7 @@
       padding: 8px 12px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 12px; /* ✅ Added */
+      font-size: 12px;
     }
 
     .filters {
@@ -91,7 +91,7 @@
       padding: 8px;
       border-radius: 6px;
       border: 1px solid #ccc;
-      font-size: 12px; /* ✅ Added */
+      font-size: 12px;
     }
 
     .btn {
@@ -99,7 +99,7 @@
       border-radius: 6px;
       border: none;
       cursor: pointer;
-      font-size: 12px; /* ✅ Added */
+      font-size: 12px;
     }
 
     .btn-filter {
@@ -118,20 +118,20 @@
       background: white;
       border-radius: 10px;
       overflow: hidden;
-      font-size: 12px; /* ✅ Added */
+      font-size: 12px;
     }
 
     th {
       background: #f5f7fb;
       padding: 12px;
       text-align: left;
-      font-size: 12px; /* ✅ Added */
+      font-size: 12px;
     }
 
     td {
       padding: 12px;
       border-bottom: 1px solid #eee;
-      font-size: 12px; /* ✅ Added */
+      font-size: 12px;
     }
 
     .badge-success {
@@ -139,7 +139,7 @@
       color: green;
       padding: 4px 8px;
       border-radius: 10px;
-      font-size: 11px; /* ✅ Added */
+      font-size: 11px;
     }
 
     .badge-pending {
@@ -147,7 +147,7 @@
       color: orange;
       padding: 4px 8px;
       border-radius: 10px;
-      font-size: 11px; /* ✅ Added */
+      font-size: 11px;
     }
   </style>
 </head>
@@ -166,8 +166,8 @@ if (!localStorage.getItem("user")) {
   </div>
 
   <div class="menu">
-    <div class="active" onclick="switchMilestone('mile1', this)">Milestone 1</div>
-    <div onclick="switchMilestone('mile2', this)">Milestone 2</div>
+    <div class="active" onclick="switchMilestone('mile1', this)">Milestone 1: OTP Verification</div>
+    <div onclick="switchMilestone('mile2', this)">Milestone 2: PAN Verification</div>
   </div>
 </div>
 
@@ -184,6 +184,7 @@ if (!localStorage.getItem("user")) {
     <input type="date" id="date">
     <button class="btn btn-filter" onclick="applyFilters()">Filter</button>
     <button class="btn btn-download" onclick="downloadCSV()">Download</button>
+    <button class="btn btn-download" onclick="refreshData()">Refresh</button>
   </div>
 
   <table>
@@ -210,6 +211,11 @@ function switchMilestone(type, el) {
   el.classList.add('active');
 
   if (type === 'mile1') loadMile1();
+  else loadMile2();
+}
+
+function refreshData() {
+  if (currentMilestone === 'mile1') loadMile1();
   else loadMile2();
 }
 
