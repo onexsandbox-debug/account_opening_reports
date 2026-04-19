@@ -84,6 +84,15 @@
       font-weight: 600;
     }
 
+    .logout-btn {
+      background: #c62828;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
     /* FILTER BAR */
     .filters {
       display: flex;
@@ -95,7 +104,7 @@
       border-radius: 10px;
     }
 
-    .filters input, .filters select {
+    .filters input {
       padding: 8px;
       border-radius: 6px;
       border: 1px solid #ccc;
@@ -172,6 +181,13 @@
 
 <body>
 
+<!-- 🔐 AUTH CHECK -->
+<script>
+if (!localStorage.getItem("user")) {
+  window.location.href = "/loginUI.html";
+}
+</script>
+
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
   <div class="logo">
@@ -188,11 +204,14 @@
 <!-- MAIN -->
 <div class="main">
 
+  <!-- HEADER -->
   <div class="header">
     <div>
       <span class="toggle-btn" onclick="toggleSidebar()">☰</span>
       <span class="title">Account Opening Reports</span>
     </div>
+
+    <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
 
   <!-- FILTERS -->
@@ -228,6 +247,11 @@ let fullData = [];
 
 function toggleSidebar() {
   document.getElementById("sidebar").classList.toggle("hide");
+}
+
+function logout() {
+  localStorage.removeItem("user");
+  window.location.href = "/loginUI.html";
 }
 
 function loadData() {
