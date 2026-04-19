@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Account Opening Reports</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #007bff; color: white; padding: 10px; }
+    td { padding: 10px; border-bottom: 1px solid #ddd; }
+    tr:hover { background: #f5f5f5; }
+  </style>
+</head>
+
+<body>
+
+<h2>Account Opening Reports</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>URN</th>
+      <th>Mobile</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="data-table"></tbody>
+</table>
+
+<script>
+  fetch('/api/getAccMile1')
+    .then(res => res.json())
+    .then(result => {
+      const data = result.data || [];
+      const table = document.getElementById('data-table');
+
+      data.forEach(item => {
+        const row = `
+          <tr>
+            <td>${item.urn}</td>
+            <td>${item.mobile_number}</td>
+            <td>${item.date}</td>
+            <td>${item.time}</td>
+            <td>${item.otp_validation}</td>
+          </tr>
+        `;
+        table.innerHTML += row;
+      });
+    })
+    .catch(err => console.error(err));
+</script>
+
+</body>
+</html>
