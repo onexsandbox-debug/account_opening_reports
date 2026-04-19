@@ -57,22 +57,58 @@
     .header {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       margin-bottom: 20px;
+    }
+
+    .logout-btn {
+      background: #c62828;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
     }
 
     .filters {
       display: flex;
       gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
       background: white;
       padding: 15px;
       border-radius: 10px;
-      margin-bottom: 15px;
+    }
+
+    .filters input {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .btn {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-filter {
+      background: #ff7a00;
+      color: white;
+    }
+
+    .btn-download {
+      background: #1f4e8c;
+      color: white;
     }
 
     table {
       width: 100%;
-      background: white;
       border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
     }
 
     th {
@@ -99,7 +135,6 @@
       padding: 4px 8px;
       border-radius: 10px;
     }
-
   </style>
 </head>
 
@@ -117,8 +152,8 @@ if (!localStorage.getItem("user")) {
   </div>
 
   <div class="menu">
-    <div class="active" onclick="loadMilestone('mile1', this)">Milestone 1</div>
-    <div onclick="loadMilestone('mile2', this)">Milestone 2</div>
+    <div class="active" onclick="switchMilestone('mile1', this)">Milestone 1</div>
+    <div onclick="switchMilestone('mile2', this)">Milestone 2</div>
   </div>
 </div>
 
@@ -126,13 +161,15 @@ if (!localStorage.getItem("user")) {
 
   <div class="header">
     <h3>Account Opening Reports</h3>
-    <button onclick="logout()">Logout</button>
+    <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
 
   <div class="filters">
     <input type="text" id="mobile" placeholder="Mobile">
     <input type="text" id="urn" placeholder="URN">
-    <button onclick="applyFilters()">Filter</button>
+    <input type="date" id="date">
+    <button class="btn btn-filter" onclick="applyFilters()">Filter</button>
+    <button class="btn btn-download" onclick="downloadCSV()">Download</button>
   </div>
 
   <table>
@@ -145,38 +182,25 @@ if (!localStorage.getItem("user")) {
 <script>
 
 let fullData = [];
+let currentMilestone = 'mile1';
 
 function logout() {
   localStorage.removeItem("user");
   window.location.href = "/loginUI.html";
 }
 
-function setActive(el) {
+function switchMilestone(type, el) {
+  currentMilestone = type;
+
   document.querySelectorAll('.menu div').forEach(d => d.classList.remove('active'));
   el.classList.add('active');
+
+  if (type === 'mile1') loadMile1();
+  else loadMile2();
 }
 
-// 🔥 Load Milestones
-function loadMilestone(type, el) {
-
-  if (el) setActive(el);
-
-  let api = type === 'mile1'
-    ? '/api/getAccMile1'
-    : '/api/getAccMile2';
-
-  fetch(api)
-    .then(res => res.json())
-    .then(result => {
-      fullData = result.data || [];
-
-      if (type === 'mile1') renderMile1(fullData);
-      else renderMile2(fullData);
-    });
-}
-
-// 🧩 Mile 1
-function renderMile1(data) {
+// 🔥 Milestone 1 (unchanged)
+function loadMile1() {
 
   document.getElementById("tableHead").innerHTML = `
     <tr>
@@ -189,11 +213,38 @@ function renderMile1(data) {
     </tr>
   `;
 
-  renderTable(data, 'mile1');
+  fetch('/api/getAccMile1')
+    .then(res => res.json())
+    .then(result => {
+      fullData = result.data || [];
+      renderMile1(fullData);
+    });
 }
 
-// 🧩 Mile 2
-function renderMile2(data) {
+function renderMile1(data) {
+  const table = document.getElementById("tableBody");
+  table.innerHTML = "";
+
+  data.forEach((item, i) => {
+    table.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${item.urn}</td>
+        <td>${item.mobile_number}</td>
+        <td>${item.date}</td>
+        <td>${item.time}</td>
+        <td>
+          ${item.otp_validation === "OTP Verified"
+            ? '<span class="badge-success">Verified</span>'
+            : '<span class="badge-pending">Pending</span>'}
+        </td>
+      </tr>
+    `;
+  });
+}
+
+// 🔥 Milestone 2
+function loadMile2() {
 
   document.getElementById("tableHead").innerHTML = `
     <tr>
@@ -210,56 +261,37 @@ function renderMile2(data) {
     </tr>
   `;
 
-  renderTable(data, 'mile2');
+  fetch('/api/getAccMile2')
+    .then(res => res.json())
+    .then(result => {
+      fullData = result.data || [];
+      renderMile2(fullData);
+    });
 }
 
-// 🔥 Common renderer
-function renderTable(data, type) {
-
+function renderMile2(data) {
   const table = document.getElementById("tableBody");
   table.innerHTML = "";
 
   data.forEach((item, i) => {
-
-    let row = '';
-
-    if (type === 'mile1') {
-      row = `
-        <tr>
-          <td>${i+1}</td>
-          <td>${item.urn}</td>
-          <td>${item.mobile_number}</td>
-          <td>${item.date}</td>
-          <td>${item.time}</td>
-          <td>${item.otp_validation === 'OTP Verified'
+    table.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${item.urn}</td>
+        <td>${item.account_type || '-'}</td>
+        <td>${item.full_name || '-'}</td>
+        <td>${item.pan_number || '-'}</td>
+        <td>
+          ${item.pan_status === "Verified"
             ? '<span class="badge-success">Verified</span>'
             : '<span class="badge-pending">Pending</span>'}
-          </td>
-        </tr>
-      `;
-    }
-
-    if (type === 'mile2') {
-      row = `
-        <tr>
-          <td>${i+1}</td>
-          <td>${item.urn}</td>
-          <td>${item.account_type || '-'}</td>
-          <td>${item.full_name || '-'}</td>
-          <td>${item.pan_number || '-'}</td>
-          <td>${item.pan_status === 'Verified'
-            ? '<span class="badge-success">Verified</span>'
-            : '<span class="badge-pending">Pending</span>'}
-          </td>
-          <td>${item.father_name || '-'}</td>
-          <td>${item.mobile_number}</td>
-          <td>${item.date}</td>
-          <td>${item.time}</td>
-        </tr>
-      `;
-    }
-
-    table.innerHTML += row;
+        </td>
+        <td>${item.father_name || '-'}</td>
+        <td>${item.mobile_number}</td>
+        <td>${item.date}</td>
+        <td>${item.time}</td>
+      </tr>
+    `;
   });
 }
 
@@ -268,17 +300,46 @@ function applyFilters() {
 
   const mobile = document.getElementById("mobile").value;
   const urn = document.getElementById("urn").value;
+  const date = document.getElementById("date").value;
 
-  const filtered = fullData.filter(item =>
+  let filtered = fullData.filter(item =>
     (!mobile || item.mobile_number.includes(mobile)) &&
-    (!urn || item.urn.includes(urn))
+    (!urn || item.urn.includes(urn)) &&
+    (!date || item.date === date)
   );
 
-  renderTable(filtered, document.querySelector('.active').innerText.includes('1') ? 'mile1' : 'mile2');
+  if (currentMilestone === 'mile1') renderMile1(filtered);
+  else renderMile2(filtered);
 }
 
-// 🚀 Default load
-loadMilestone('mile1');
+// 📥 Download
+function downloadCSV() {
+
+  let csv = "";
+
+  if (currentMilestone === 'mile1') {
+    csv = "URN,Mobile,Date,Time,Status\n";
+    fullData.forEach(item => {
+      csv += `${item.urn},${item.mobile_number},${item.date},${item.time},${item.otp_validation}\n`;
+    });
+  } else {
+    csv = "URN,Account,Name,PAN,Status,Father,Mobile,Date,Time\n";
+    fullData.forEach(item => {
+      csv += `${item.urn},${item.account_type},${item.full_name},${item.pan_number},${item.pan_status},${item.father_name},${item.mobile_number},${item.date},${item.time}\n`;
+    });
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "report.csv";
+  a.click();
+}
+
+// 🚀 Default
+loadMile1();
 
 </script>
 
