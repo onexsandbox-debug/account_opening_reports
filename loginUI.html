@@ -3,88 +3,181 @@
 <head>
   <title>Login</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
     body {
       margin: 0;
-      font-family: 'Manrope';
-      display: flex;
+      font-family: 'Manrope', sans-serif;
       height: 100vh;
+      display: flex;
+      background: linear-gradient(to right, #D56269 50%, #FFE2E3 50%);
     }
 
+    .container {
+      margin: auto;
+      width: 85%;
+      max-width: 1000px;
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      display: flex;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+
+    /* LEFT PANEL */
     .left {
       flex: 1;
-      background: #c62828;
-      color: white;
+      padding: 50px;
+      color: #fff;
+    }
+
+    .left img {
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .left h2 {
+      margin-top: 20px;
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .left p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #ffecec;
+    }
+
+    /* RIGHT PANEL */
+    .right {
+      flex: 1;
+      padding: 50px;
+      background: rgba(255,255,255,0.7);
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 60px;
     }
 
-    .right {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #f4f6f9;
+    .right h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 26px;
     }
 
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      width: 320px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    .input-box {
+      width: 100%;
+      margin-bottom: 15px;
     }
 
     input {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      padding: 14px;
+      border-radius: 8px;
+      border: none;
+      background: #e9edf3;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      margin-bottom: 15px;
+    }
+
+    .row a {
+      text-decoration: none;
+      color: #777;
+    }
+
+    .checkbox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     button {
       width: 100%;
-      padding: 10px;
-      background: #c62828;
-      color: white;
+      padding: 14px;
+      border-radius: 8px;
       border: none;
-      border-radius: 6px;
+      background: #D56269;
+      color: white;
+      font-weight: 600;
       cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button:hover {
+      background: #c14f56;
     }
 
     .error {
       color: red;
       font-size: 12px;
       margin-bottom: 10px;
+      text-align: center;
     }
+
   </style>
 </head>
 
 <body>
 
-<div class="left">
-  <h2>Messaging solutions to scale your business</h2>
-  <p>Secure. Reliable. Scalable.</p>
-</div>
+<div class="container">
 
-<div class="right">
-  <div class="card">
+  <!-- LEFT -->
+  <div class="left">
+    <img src="https://cdn.dribbble.com/users/1787323/screenshots/11172094/media/2bdfd6a1d5a3c2dc0d4e68c2f2d64c0f.png">
+    
+    <h2>Messaging solutions to scale your business</h2>
+    
+    <p>
+      SMS Solution with end-to-end encryption. DLT Friendly. Realtime analytics.
+      Multiple API compatibility. Intelligent operator routing.
+      Auto-scaling system.
+    </p>
+  </div>
 
-    <h3>Sign In</h3>
+  <!-- RIGHT -->
+  <div class="right">
 
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
+    <h2>Sign In</h2>
+
+    <div class="input-box">
+      <input type="email" id="email" placeholder="Email">
+    </div>
+
+    <div class="input-box">
+      <input type="password" id="password" placeholder="Password">
+    </div>
+
+    <div class="row">
+      <div class="checkbox">
+        <input type="checkbox" checked>
+        <span>I accept Terms</span>
+      </div>
+
+      <a href="#">Forgot Password?</a>
+    </div>
 
     <div id="error" class="error"></div>
 
-    <button onclick="login()">Sign In</button>
+    <button onclick="login()">
+      Sign In →
+    </button>
 
   </div>
+
 </div>
 
 <script>
