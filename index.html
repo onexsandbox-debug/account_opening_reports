@@ -3,7 +3,6 @@
 <head>
   <title>Account Opening Dashboard</title>
 
-  <!-- FONT -->
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -17,7 +16,7 @@
     /* SIDEBAR */
     .sidebar {
       width: 240px;
-      background: #ffffff;
+      background: white;
       height: 100vh;
       border-right: 1px solid #eee;
       transition: 0.3s;
@@ -29,10 +28,13 @@
     }
 
     .logo {
-      padding: 20px;
-      font-weight: 700;
-      font-size: 20px;
-      color: #e60023;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .logo img {
+      max-width: 140px;
     }
 
     .menu {
@@ -74,37 +76,12 @@
     .toggle-btn {
       cursor: pointer;
       font-size: 20px;
+      margin-right: 10px;
     }
 
     .title {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 600;
-    }
-
-    /* CARDS */
-    .cards {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      flex: 1;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-
-    .card-title {
-      font-size: 13px;
-      color: #888;
-    }
-
-    .card-value {
-      font-size: 22px;
-      font-weight: 700;
-      margin-top: 5px;
     }
 
     /* FILTER BAR */
@@ -113,6 +90,9 @@
       gap: 10px;
       margin-bottom: 15px;
       flex-wrap: wrap;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
     }
 
     .filters input, .filters select {
@@ -147,24 +127,44 @@
       background: white;
       border-radius: 10px;
       overflow: hidden;
+      font-size: 13px;
     }
 
     th {
-      background: #1f4e8c;
-      color: white;
-      padding: 10px;
-      font-size: 13px;
+      background: #f5f7fb;
+      color: #666;
+      padding: 12px;
       text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid #eaeaea;
     }
 
     td {
-      padding: 10px;
-      border-bottom: 1px solid #eee;
-      font-size: 13px;
+      padding: 12px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #333;
     }
 
     tr:hover {
-      background: #f9f9f9;
+      background: #fafafa;
+    }
+
+    /* STATUS BADGES */
+    .badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-success {
+      background: #e6f7ee;
+      color: #1f9d55;
+    }
+
+    .badge-pending {
+      background: #fff4e5;
+      color: #f59e0b;
     }
 
   </style>
@@ -175,45 +175,23 @@
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
   <div class="logo">
-  <img src="https://warcssm.1xtel.co/media/media/2b47ba00-2481-4131-a600-0d2ebd01f0b5/OneXtel_Logo_P.jpg"
-       alt="Onextel Logo"
-       style="height: 40px; width: auto;">
-</div>
+    <img src="https://warcssm.1xtel.co/media/media/2b47ba00-2481-4131-a600-0d2ebd01f0b5/OneXtel_Logo_P.jpg">
+  </div>
 
   <div class="menu">
     <div class="active">Milestone 1</div>
     <div>Milestone 2</div>
     <div>Milestone 3</div>
-    <div>Milestone 4</div>
   </div>
 </div>
 
 <!-- MAIN -->
 <div class="main">
 
-  <!-- HEADER -->
   <div class="header">
     <div>
       <span class="toggle-btn" onclick="toggleSidebar()">☰</span>
-      <span class="title">Dashboard - Account Opening</span>
-    </div>
-  </div>
-
-  <!-- CARDS -->
-  <div class="cards">
-    <div class="card">
-      <div class="card-title">Total Records</div>
-      <div class="card-value" id="totalCount">0</div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">OTP Verified</div>
-      <div class="card-value" id="verifiedCount">0</div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Pending</div>
-      <div class="card-value" id="pendingCount">0</div>
+      <span class="title">Account Opening Reports</span>
     </div>
   </div>
 
@@ -223,14 +201,8 @@
     <input type="text" id="urn" placeholder="URN">
     <input type="date" id="date">
 
-    <select id="status">
-      <option value="">All Status</option>
-      <option value="OTP Verified">OTP Verified</option>
-      <option value="PENDING">PENDING</option>
-    </select>
-
-    <button class="btn btn-filter" onclick="applyFilters()">FILTER</button>
-    <button class="btn btn-download" onclick="downloadCSV()">DOWNLOAD</button>
+    <button class="btn btn-filter" onclick="applyFilters()">Filter</button>
+    <button class="btn btn-download" onclick="downloadCSV()">Download</button>
   </div>
 
   <!-- TABLE -->
@@ -245,6 +217,7 @@
         <th>Status</th>
       </tr>
     </thead>
+
     <tbody id="tableBody"></tbody>
   </table>
 
@@ -263,7 +236,6 @@ function loadData() {
     .then(result => {
       fullData = result.data || [];
       renderTable(fullData);
-      updateCards(fullData);
     });
 }
 
@@ -279,39 +251,32 @@ function renderTable(data) {
         <td>${item.mobile_number}</td>
         <td>${item.date}</td>
         <td>${item.time}</td>
-        <td>${item.otp_validation}</td>
+        <td>
+          ${
+            item.otp_validation === "OTP Verified"
+              ? '<span class="badge badge-success">Verified</span>'
+              : '<span class="badge badge-pending">Pending</span>'
+          }
+        </td>
       </tr>
     `;
   });
-}
-
-function updateCards(data) {
-  document.getElementById("totalCount").innerText = data.length;
-
-  let verified = data.filter(d => d.otp_validation === "OTP Verified").length;
-  let pending = data.filter(d => d.otp_validation !== "OTP Verified").length;
-
-  document.getElementById("verifiedCount").innerText = verified;
-  document.getElementById("pendingCount").innerText = pending;
 }
 
 function applyFilters() {
   const mobile = document.getElementById("mobile").value;
   const urn = document.getElementById("urn").value;
   const date = document.getElementById("date").value;
-  const status = document.getElementById("status").value;
 
   let filtered = fullData.filter(item => {
     return (
       (!mobile || item.mobile_number.includes(mobile)) &&
       (!urn || item.urn.includes(urn)) &&
-      (!date || item.date === date) &&
-      (!status || item.otp_validation === status)
+      (!date || item.date === date)
     );
   });
 
   renderTable(filtered);
-  updateCards(filtered);
 }
 
 function downloadCSV() {
