@@ -3,25 +3,108 @@
 <head>
   <title>Account Opening Dashboard</title>
 
+  <!-- FONT -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&display=swap" rel="stylesheet">
+
   <style>
     body {
-      font-family: Arial;
       margin: 0;
+      font-family: 'Manrope', sans-serif;
       background: #f4f6f9;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 240px;
+      background: #ffffff;
+      height: 100vh;
+      border-right: 1px solid #eee;
+      transition: 0.3s;
+    }
+
+    .sidebar.hide {
+      width: 0;
+      overflow: hidden;
+    }
+
+    .logo {
+      padding: 20px;
+      font-weight: 700;
+      font-size: 20px;
+      color: #e60023;
+    }
+
+    .menu {
+      padding: 10px;
+    }
+
+    .menu div {
+      padding: 12px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .menu div:hover {
+      background: #f5f5f5;
+    }
+
+    .active {
+      background: #ffe6e6;
+      color: #e60023;
+      font-weight: 600;
+    }
+
+    /* MAIN */
+    .main {
+      flex: 1;
+      padding: 20px;
     }
 
     /* HEADER */
     .header {
-      background: #1f4e8c;
-      color: white;
-      padding: 15px 20px;
-      font-size: 20px;
-      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
     }
 
-    /* CONTAINER */
-    .container {
-      padding: 20px;
+    .toggle-btn {
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .title {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    /* CARDS */
+    .cards {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      flex: 1;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .card-title {
+      font-size: 13px;
+      color: #888;
+    }
+
+    .card-value {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 5px;
     }
 
     /* FILTER BAR */
@@ -29,19 +112,22 @@
       display: flex;
       gap: 10px;
       margin-bottom: 15px;
+      flex-wrap: wrap;
     }
 
     .filters input, .filters select {
       padding: 8px;
+      border-radius: 6px;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      font-family: 'Manrope';
     }
 
     .btn {
       padding: 8px 12px;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
+      font-weight: 600;
     }
 
     .btn-filter {
@@ -50,7 +136,7 @@
     }
 
     .btn-download {
-      background: #007bff;
+      background: #1f4e8c;
       color: white;
     }
 
@@ -59,44 +145,84 @@
       width: 100%;
       border-collapse: collapse;
       background: white;
+      border-radius: 10px;
+      overflow: hidden;
     }
 
     th {
       background: #1f4e8c;
       color: white;
       padding: 10px;
+      font-size: 13px;
       text-align: left;
     }
 
     td {
       padding: 10px;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
     }
 
     tr:hover {
-      background: #f1f1f1;
+      background: #f9f9f9;
     }
+
   </style>
 </head>
 
 <body>
 
-<div class="header">
-  Account Opening Dashboard
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="logo">ONEXTEL</div>
+
+  <div class="menu">
+    <div class="active">Milestone 1</div>
+    <div>Milestone 2</div>
+    <div>Milestone 3</div>
+    <div>Milestone 4</div>
+  </div>
 </div>
 
-<div class="container">
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <span class="toggle-btn" onclick="toggleSidebar()">☰</span>
+      <span class="title">Dashboard - Account Opening</span>
+    </div>
+  </div>
+
+  <!-- CARDS -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-title">Total Records</div>
+      <div class="card-value" id="totalCount">0</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">OTP Verified</div>
+      <div class="card-value" id="verifiedCount">0</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Pending</div>
+      <div class="card-value" id="pendingCount">0</div>
+    </div>
+  </div>
 
   <!-- FILTERS -->
   <div class="filters">
-    <input type="text" id="searchMobile" placeholder="Mobile Number">
-    <input type="text" id="searchURN" placeholder="URN">
-    <input type="date" id="searchDate">
+    <input type="text" id="mobile" placeholder="Mobile">
+    <input type="text" id="urn" placeholder="URN">
+    <input type="date" id="date">
 
-    <select id="searchStatus">
+    <select id="status">
       <option value="">All Status</option>
       <option value="OTP Verified">OTP Verified</option>
-      <option value="PENDING">Pending</option>
+      <option value="PENDING">PENDING</option>
     </select>
 
     <button class="btn btn-filter" onclick="applyFilters()">FILTER</button>
@@ -115,7 +241,7 @@
         <th>Status</th>
       </tr>
     </thead>
-    <tbody id="data-table"></tbody>
+    <tbody id="tableBody"></tbody>
   </table>
 
 </div>
@@ -123,23 +249,28 @@
 <script>
 let fullData = [];
 
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("hide");
+}
+
 function loadData() {
   fetch('/api/getAccMile1')
     .then(res => res.json())
     .then(result => {
       fullData = result.data || [];
       renderTable(fullData);
+      updateCards(fullData);
     });
 }
 
 function renderTable(data) {
-  const table = document.getElementById('data-table');
-  table.innerHTML = '';
+  const table = document.getElementById("tableBody");
+  table.innerHTML = "";
 
-  data.forEach((item, index) => {
-    const row = `
+  data.forEach((item, i) => {
+    table.innerHTML += `
       <tr>
-        <td>${index + 1}</td>
+        <td>${i+1}</td>
         <td>${item.urn}</td>
         <td>${item.mobile_number}</td>
         <td>${item.date}</td>
@@ -147,15 +278,24 @@ function renderTable(data) {
         <td>${item.otp_validation}</td>
       </tr>
     `;
-    table.innerHTML += row;
   });
 }
 
+function updateCards(data) {
+  document.getElementById("totalCount").innerText = data.length;
+
+  let verified = data.filter(d => d.otp_validation === "OTP Verified").length;
+  let pending = data.filter(d => d.otp_validation !== "OTP Verified").length;
+
+  document.getElementById("verifiedCount").innerText = verified;
+  document.getElementById("pendingCount").innerText = pending;
+}
+
 function applyFilters() {
-  const mobile = document.getElementById('searchMobile').value;
-  const urn = document.getElementById('searchURN').value;
-  const date = document.getElementById('searchDate').value;
-  const status = document.getElementById('searchStatus').value;
+  const mobile = document.getElementById("mobile").value;
+  const urn = document.getElementById("urn").value;
+  const date = document.getElementById("date").value;
+  const status = document.getElementById("status").value;
 
   let filtered = fullData.filter(item => {
     return (
@@ -167,6 +307,7 @@ function applyFilters() {
   });
 
   renderTable(filtered);
+  updateCards(filtered);
 }
 
 function downloadCSV() {
@@ -181,7 +322,7 @@ function downloadCSV() {
 
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'report.csv';
+  a.download = "report.csv";
   a.click();
 }
 
