@@ -1,19 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-// 🔍 ENV DEBUG
-console.log("INIT: SUPABASE_URL =", process.env.SUPABASE_URL);
-console.log(
-  "INIT: SUPABASE_ANON_KEY =",
-  process.env.SUPABASE_ANON_KEY ? "Loaded ✅" : "Missing ❌"
-);
-
-// ✅ Initialize Supabase
+// INIT
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
 
-// 🔧 Utility: validate input
+// VALIDATION
 const isValid = (val) => {
   return (
     val !== undefined &&
@@ -24,10 +17,28 @@ const isValid = (val) => {
   );
 };
 
-export default async function handler(req, res) {
-  console.log("---- INSERT API INVOKED ----");
+// 🔥 Convert 12hr → 24hr
+const convertTo24Hour = (timeStr) => {
+  try {
+    const [time, modifier] = timeStr.split(' ');
+    let [hours, minutes, seconds] = time.split(':');
 
-  // ✅ CORS
+    if (modifier === 'PM' && hours !== '12') {
+      hours = String(parseInt(hours) + 12);
+    }
+
+    if (modifier === 'AM' && hours === '12') {
+      hours = '00';
+    }
+
+    return `${hours.padStart(2, '0')}:${minutes}:${seconds}`;
+  } catch (e) {
+    return timeStr; // fallback
+  }
+};
+
+export default async function handler(req, res) {
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -45,67 +56,55 @@ export default async function handler(req, res) {
 
     let { urn, mobile_number, otp_validation, date, time } = body;
 
-    console.log("Incoming Body:", body);
+    console.log("Incoming:", body);
 
-    // =========================
     // VALIDATION
-    // =========================
     if (!isValid(urn) || !isValid(mobile_number)) {
       return res.status(400).json({
         error: "URN and mobile_number are required"
       });
     }
 
-    // 📱 Clean mobile number
+    // CLEAN MOBILE
     mobile_number = mobile_number.toString().slice(-10);
 
-    // =========================
-    // DATE FORMAT (DD-MM-YYYY)
-    // =========================
-    const now = new Date();
+    // DATE (DD-MM-YYYY as-is)
+    const finalDate = date;
 
-    const formattedDate = date
-      ? date
-      : now.toLocaleDateString('en-GB').replace(/\//g, '-'); // DD-MM-YYYY
+    // 🔥 TIME FIX (AM/PM → 24hr)
+    const finalTime = convertTo24Hour(time);
 
-    const formattedTime = time
-      ? time
-      : now.toTimeString().split(' ')[0]; // HH:MM:SS
+    console.log("Converted Time:", finalTime);
 
-    // =========================
     // INSERT
-    // =========================
     const { data, error } = await supabase
       .from('acc_mile_1')
       .insert([
         {
           urn: urn.trim(),
           mobile_number,
-          date: formattedDate,   // stored as TEXT
-          time: formattedTime,
+          date: finalDate,     // TEXT
+          time: finalTime,     // 24hr format
           otp_validation: otp_validation || 'PENDING'
         }
       ])
       .select();
 
     if (error) {
-      console.error("❌ Supabase Insert Error:", error);
-
-      return res.status(400).json({
-        error: error.message
-      });
+      console.error("❌ Insert Error:", error);
+      return res.status(400).json({ error: error.message });
     }
 
-    console.log("✅ Insert Successful:", data);
+    console.log("✅ Insert Success:", data);
 
     return res.status(200).json({
       success: true,
-      message: "Record inserted successfully",
+      message: "Inserted successfully",
       data
     });
 
   } catch (err) {
-    console.error("❌ Connection Error:", err);
+    console.error("❌ Error:", err);
 
     return res.status(500).json({
       error: "Insert Failed",
