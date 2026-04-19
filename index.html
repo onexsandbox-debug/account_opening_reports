@@ -1,54 +1,191 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Account Opening Reports</title>
+  <title>Account Opening Dashboard</title>
+
   <style>
-    body { font-family: Arial; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th { background: #007bff; color: white; padding: 10px; }
-    td { padding: 10px; border-bottom: 1px solid #ddd; }
-    tr:hover { background: #f5f5f5; }
+    body {
+      font-family: Arial;
+      margin: 0;
+      background: #f4f6f9;
+    }
+
+    /* HEADER */
+    .header {
+      background: #1f4e8c;
+      color: white;
+      padding: 15px 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    /* CONTAINER */
+    .container {
+      padding: 20px;
+    }
+
+    /* FILTER BAR */
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .filters input, .filters select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .btn {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .btn-filter {
+      background: #ff7a00;
+      color: white;
+    }
+
+    .btn-download {
+      background: #007bff;
+      color: white;
+    }
+
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th {
+      background: #1f4e8c;
+      color: white;
+      padding: 10px;
+      text-align: left;
+    }
+
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    tr:hover {
+      background: #f1f1f1;
+    }
   </style>
 </head>
 
 <body>
 
-<h2>Account Opening Reports</h2>
+<div class="header">
+  Account Opening Dashboard
+</div>
 
-<table>
-  <thead>
-    <tr>
-      <th>URN</th>
-      <th>Mobile</th>
-      <th>Date</th>
-      <th>Time</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody id="data-table"></tbody>
-</table>
+<div class="container">
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <input type="text" id="searchMobile" placeholder="Mobile Number">
+    <input type="text" id="searchURN" placeholder="URN">
+    <input type="date" id="searchDate">
+
+    <select id="searchStatus">
+      <option value="">All Status</option>
+      <option value="OTP Verified">OTP Verified</option>
+      <option value="PENDING">Pending</option>
+    </select>
+
+    <button class="btn btn-filter" onclick="applyFilters()">FILTER</button>
+    <button class="btn btn-download" onclick="downloadCSV()">DOWNLOAD</button>
+  </div>
+
+  <!-- TABLE -->
+  <table>
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>URN</th>
+        <th>Mobile</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="data-table"></tbody>
+  </table>
+
+</div>
 
 <script>
+let fullData = [];
+
+function loadData() {
   fetch('/api/getAccMile1')
     .then(res => res.json())
     .then(result => {
-      const data = result.data || [];
-      const table = document.getElementById('data-table');
+      fullData = result.data || [];
+      renderTable(fullData);
+    });
+}
 
-      data.forEach(item => {
-        const row = `
-          <tr>
-            <td>${item.urn}</td>
-            <td>${item.mobile_number}</td>
-            <td>${item.date}</td>
-            <td>${item.time}</td>
-            <td>${item.otp_validation}</td>
-          </tr>
-        `;
-        table.innerHTML += row;
-      });
-    })
-    .catch(err => console.error(err));
+function renderTable(data) {
+  const table = document.getElementById('data-table');
+  table.innerHTML = '';
+
+  data.forEach((item, index) => {
+    const row = `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${item.urn}</td>
+        <td>${item.mobile_number}</td>
+        <td>${item.date}</td>
+        <td>${item.time}</td>
+        <td>${item.otp_validation}</td>
+      </tr>
+    `;
+    table.innerHTML += row;
+  });
+}
+
+function applyFilters() {
+  const mobile = document.getElementById('searchMobile').value;
+  const urn = document.getElementById('searchURN').value;
+  const date = document.getElementById('searchDate').value;
+  const status = document.getElementById('searchStatus').value;
+
+  let filtered = fullData.filter(item => {
+    return (
+      (!mobile || item.mobile_number.includes(mobile)) &&
+      (!urn || item.urn.includes(urn)) &&
+      (!date || item.date === date) &&
+      (!status || item.otp_validation === status)
+    );
+  });
+
+  renderTable(filtered);
+}
+
+function downloadCSV() {
+  let csv = "URN,Mobile,Date,Time,Status\n";
+
+  fullData.forEach(item => {
+    csv += `${item.urn},${item.mobile_number},${item.date},${item.time},${item.otp_validation}\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'report.csv';
+  a.click();
+}
+
+loadData();
 </script>
 
 </body>
