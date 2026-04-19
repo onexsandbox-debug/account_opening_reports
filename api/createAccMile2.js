@@ -17,6 +17,25 @@ const isValid = (val) => {
   );
 };
 
+// 🕒 IST Date-Time Generator
+const getISTDateTime = () => {
+  const now = new Date();
+
+  const istDate = now.toLocaleDateString('en-GB', {
+    timeZone: 'Asia/Kolkata'
+  }).replace(/\//g, '-'); // DD-MM-YYYY
+
+  const istTime = now.toLocaleTimeString('en-US', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+
+  return { istDate, istTime };
+};
+
 export default async function handler(req, res) {
 
   // ✅ CORS
@@ -39,7 +58,7 @@ export default async function handler(req, res) {
       account_type,
       full_name,
       pan_number,
-      pan_status,   // ✅ NEW FIELD
+      pan_status,
       father_name,
       mobile_number
     } = req.body || {};
@@ -52,7 +71,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // 🔥 Insert into Supabase (NO date/time passed)
+    // 🕒 Get IST date & time
+    const { istDate, istTime } = getISTDateTime();
+
+    // 🔥 Insert into Supabase
     const { data, error } = await supabase
       .from('acc_mile_2')
       .insert([
@@ -61,10 +83,11 @@ export default async function handler(req, res) {
           account_type,
           full_name,
           pan_number,
-          pan_status,   // ✅ inserted
+          pan_status,
           father_name,
-          mobile_number
-          // ❌ date & time NOT passed → DB auto fills
+          mobile_number,
+          date: istDate,   // ✅ IST Date
+          time: istTime    // ✅ IST Time
         }
       ])
       .select();
