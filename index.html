@@ -13,24 +13,15 @@
       display: flex;
     }
 
-    /* SIDEBAR */
     .sidebar {
       width: 240px;
       background: white;
       height: 100vh;
       border-right: 1px solid #eee;
-      transition: 0.3s;
-    }
-
-    .sidebar.hide {
-      width: 0;
-      overflow: hidden;
     }
 
     .logo {
       padding: 15px 20px;
-      display: flex;
-      align-items: center;
     }
 
     .logo img {
@@ -46,7 +37,6 @@
       margin-bottom: 5px;
       cursor: pointer;
       border-radius: 6px;
-      font-size: 14px;
     }
 
     .menu div:hover {
@@ -59,121 +49,55 @@
       font-weight: 600;
     }
 
-    /* MAIN */
     .main {
       flex: 1;
       padding: 20px;
     }
 
-    /* HEADER */
     .header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
       margin-bottom: 20px;
     }
 
-    .toggle-btn {
-      cursor: pointer;
-      font-size: 20px;
-      margin-right: 10px;
-    }
-
-    .title {
-      font-size: 20px;
-      font-weight: 600;
-    }
-
-    .logout-btn {
-      background: #c62828;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    /* FILTER BAR */
     .filters {
       display: flex;
       gap: 10px;
-      margin-bottom: 15px;
-      flex-wrap: wrap;
       background: white;
       padding: 15px;
       border-radius: 10px;
+      margin-bottom: 15px;
     }
 
-    .filters input {
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-family: 'Manrope';
-    }
-
-    .btn {
-      padding: 8px 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .btn-filter {
-      background: #ff7a00;
-      color: white;
-    }
-
-    .btn-download {
-      background: #1f4e8c;
-      color: white;
-    }
-
-    /* TABLE */
     table {
       width: 100%;
-      border-collapse: collapse;
       background: white;
-      border-radius: 10px;
-      overflow: hidden;
-      font-size: 13px;
+      border-collapse: collapse;
     }
 
     th {
       background: #f5f7fb;
-      color: #666;
       padding: 12px;
       text-align: left;
-      font-weight: 600;
-      border-bottom: 1px solid #eaeaea;
     }
 
     td {
       padding: 12px;
-      border-bottom: 1px solid #f0f0f0;
-      color: #333;
-    }
-
-    tr:hover {
-      background: #fafafa;
-    }
-
-    /* STATUS BADGES */
-    .badge {
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
+      border-bottom: 1px solid #eee;
     }
 
     .badge-success {
       background: #e6f7ee;
-      color: #1f9d55;
+      color: green;
+      padding: 4px 8px;
+      border-radius: 10px;
     }
 
     .badge-pending {
       background: #fff4e5;
-      color: #f59e0b;
+      color: orange;
+      padding: 4px 8px;
+      border-radius: 10px;
     }
 
   </style>
@@ -181,145 +105,181 @@
 
 <body>
 
-<!-- 🔐 AUTH CHECK -->
 <script>
 if (!localStorage.getItem("user")) {
   window.location.href = "/loginUI.html";
 }
 </script>
 
-<!-- SIDEBAR -->
-<div class="sidebar" id="sidebar">
+<div class="sidebar">
   <div class="logo">
     <img src="https://warcssm.1xtel.co/media/media/2b47ba00-2481-4131-a600-0d2ebd01f0b5/OneXtel_Logo_P.jpg">
   </div>
 
   <div class="menu">
-    <div class="active">Milestone 1</div>
-    <div>Milestone 2</div>
-    <div>Milestone 3</div>
+    <div class="active" onclick="loadMilestone('mile1', this)">Milestone 1</div>
+    <div onclick="loadMilestone('mile2', this)">Milestone 2</div>
   </div>
 </div>
 
-<!-- MAIN -->
 <div class="main">
 
-  <!-- HEADER -->
   <div class="header">
-    <div>
-      <span class="toggle-btn" onclick="toggleSidebar()">☰</span>
-      <span class="title">Account Opening Reports</span>
-    </div>
-
-    <button class="logout-btn" onclick="logout()">Logout</button>
+    <h3>Account Opening Reports</h3>
+    <button onclick="logout()">Logout</button>
   </div>
 
-  <!-- FILTERS -->
   <div class="filters">
     <input type="text" id="mobile" placeholder="Mobile">
     <input type="text" id="urn" placeholder="URN">
-    <input type="date" id="date">
-
-    <button class="btn btn-filter" onclick="applyFilters()">Filter</button>
-    <button class="btn btn-download" onclick="downloadCSV()">Download</button>
+    <button onclick="applyFilters()">Filter</button>
   </div>
 
-  <!-- TABLE -->
   <table>
-    <thead>
-      <tr>
-        <th>S.No</th>
-        <th>URN</th>
-        <th>Mobile</th>
-        <th>Date</th>
-        <th>Time</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-
+    <thead id="tableHead"></thead>
     <tbody id="tableBody"></tbody>
   </table>
 
 </div>
 
 <script>
-let fullData = [];
 
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("hide");
-}
+let fullData = [];
 
 function logout() {
   localStorage.removeItem("user");
   window.location.href = "/loginUI.html";
 }
 
-function loadData() {
-  fetch('/api/getAccMile1')
+function setActive(el) {
+  document.querySelectorAll('.menu div').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// 🔥 Load Milestones
+function loadMilestone(type, el) {
+
+  if (el) setActive(el);
+
+  let api = type === 'mile1'
+    ? '/api/getAccMile1'
+    : '/api/getAccMile2';
+
+  fetch(api)
     .then(res => res.json())
     .then(result => {
       fullData = result.data || [];
-      renderTable(fullData);
+
+      if (type === 'mile1') renderMile1(fullData);
+      else renderMile2(fullData);
     });
 }
 
-function renderTable(data) {
+// 🧩 Mile 1
+function renderMile1(data) {
+
+  document.getElementById("tableHead").innerHTML = `
+    <tr>
+      <th>S.No</th>
+      <th>URN</th>
+      <th>Mobile</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>Status</th>
+    </tr>
+  `;
+
+  renderTable(data, 'mile1');
+}
+
+// 🧩 Mile 2
+function renderMile2(data) {
+
+  document.getElementById("tableHead").innerHTML = `
+    <tr>
+      <th>S.No</th>
+      <th>URN</th>
+      <th>Account Type</th>
+      <th>Name</th>
+      <th>PAN</th>
+      <th>Status</th>
+      <th>Father</th>
+      <th>Mobile</th>
+      <th>Date</th>
+      <th>Time</th>
+    </tr>
+  `;
+
+  renderTable(data, 'mile2');
+}
+
+// 🔥 Common renderer
+function renderTable(data, type) {
+
   const table = document.getElementById("tableBody");
   table.innerHTML = "";
 
   data.forEach((item, i) => {
-    table.innerHTML += `
-      <tr>
-        <td>${i+1}</td>
-        <td>${item.urn}</td>
-        <td>${item.mobile_number}</td>
-        <td>${item.date}</td>
-        <td>${item.time}</td>
-        <td>
-          ${
-            item.otp_validation === "OTP Verified"
-              ? '<span class="badge badge-success">Verified</span>'
-              : '<span class="badge badge-pending">Pending</span>'
-          }
-        </td>
-      </tr>
-    `;
+
+    let row = '';
+
+    if (type === 'mile1') {
+      row = `
+        <tr>
+          <td>${i+1}</td>
+          <td>${item.urn}</td>
+          <td>${item.mobile_number}</td>
+          <td>${item.date}</td>
+          <td>${item.time}</td>
+          <td>${item.otp_validation === 'OTP Verified'
+            ? '<span class="badge-success">Verified</span>'
+            : '<span class="badge-pending">Pending</span>'}
+          </td>
+        </tr>
+      `;
+    }
+
+    if (type === 'mile2') {
+      row = `
+        <tr>
+          <td>${i+1}</td>
+          <td>${item.urn}</td>
+          <td>${item.account_type || '-'}</td>
+          <td>${item.full_name || '-'}</td>
+          <td>${item.pan_number || '-'}</td>
+          <td>${item.pan_status === 'Verified'
+            ? '<span class="badge-success">Verified</span>'
+            : '<span class="badge-pending">Pending</span>'}
+          </td>
+          <td>${item.father_name || '-'}</td>
+          <td>${item.mobile_number}</td>
+          <td>${item.date}</td>
+          <td>${item.time}</td>
+        </tr>
+      `;
+    }
+
+    table.innerHTML += row;
   });
 }
 
+// 🔍 Filter
 function applyFilters() {
+
   const mobile = document.getElementById("mobile").value;
   const urn = document.getElementById("urn").value;
-  const date = document.getElementById("date").value;
 
-  let filtered = fullData.filter(item => {
-    return (
-      (!mobile || item.mobile_number.includes(mobile)) &&
-      (!urn || item.urn.includes(urn)) &&
-      (!date || item.date === date)
-    );
-  });
+  const filtered = fullData.filter(item =>
+    (!mobile || item.mobile_number.includes(mobile)) &&
+    (!urn || item.urn.includes(urn))
+  );
 
-  renderTable(filtered);
+  renderTable(filtered, document.querySelector('.active').innerText.includes('1') ? 'mile1' : 'mile2');
 }
 
-function downloadCSV() {
-  let csv = "URN,Mobile,Date,Time,Status\n";
+// 🚀 Default load
+loadMilestone('mile1');
 
-  fullData.forEach(item => {
-    csv += `${item.urn},${item.mobile_number},${item.date},${item.time},${item.otp_validation}\n`;
-  });
-
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = "report.csv";
-  a.click();
-}
-
-loadData();
 </script>
 
 </body>
