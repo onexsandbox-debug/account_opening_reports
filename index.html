@@ -168,6 +168,7 @@ if (!localStorage.getItem("user")) {
   <div class="menu">
     <div class="active" onclick="switchMilestone('mile1', this)">Milestone 1: OTP Verification</div>
     <div onclick="switchMilestone('mile2', this)">Milestone 2: PAN Verification</div>
+    <div onclick="switchMilestone('mile3', this)">Milestone 3: KYC Completed</div>
   </div>
 </div>
 
@@ -211,12 +212,14 @@ function switchMilestone(type, el) {
   el.classList.add('active');
 
   if (type === 'mile1') loadMile1();
-  else loadMile2();
+  else if (type === 'mile2') loadMile2();
+  else loadMile3(); // ✅ FIXED
 }
 
 function refreshData() {
   if (currentMilestone === 'mile1') loadMile1();
-  else loadMile2();
+  else if (currentMilestone === 'mile2') loadMile2();
+  else loadMile3(); // ✅ FIXED
 }
 
 function loadMile1() {
@@ -311,43 +314,67 @@ function renderMile2(data) {
   });
 }
 
+// ✅ NEW MILESTONE 3
+function loadMile3() {
+  document.getElementById("tableHead").innerHTML = `
+    <tr>
+      <th>S.No</th>
+      <th>Full Name</th>
+      <th>Gender</th>
+      <th>DOB</th>
+      <th>Aadhaar</th>
+      <th>Address</th>
+      <th>ZIP</th>
+      <th>Status</th>
+      <th>Date</th>
+      <th>Time</th>
+    </tr>
+  `;
+
+  fetch('/api/getAccMile3')
+    .then(res => res.json())
+    .then(result => {
+      fullData = result.data || [];
+      renderMile3(fullData);
+    });
+}
+
+function renderMile3(data) {
+  const table = document.getElementById("tableBody");
+  table.innerHTML = "";
+
+  data.forEach((item, i) => {
+    table.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${item.full_name}</td>
+        <td>${item.gender}</td>
+        <td>${item.dob}</td>
+        <td>${item.masked_aadhaar}</td>
+        <td>${item.full_address}</td>
+        <td>${item.zip}</td>
+        <td><span class="badge-success">${item.status}</span></td>
+        <td>${item.date}</td>
+        <td>${item.time}</td>
+      </tr>
+    `;
+  });
+}
+
 function applyFilters() {
   const mobile = document.getElementById("mobile").value;
   const urn = document.getElementById("urn").value;
   const date = document.getElementById("date").value;
 
   let filtered = fullData.filter(item =>
-    (!mobile || item.mobile_number.includes(mobile)) &&
-    (!urn || item.urn.includes(urn)) &&
+    (!mobile || (item.mobile_number && item.mobile_number.includes(mobile))) &&
+    (!urn || (item.urn && item.urn.includes(urn))) &&
     (!date || item.date === date)
   );
 
   if (currentMilestone === 'mile1') renderMile1(filtered);
-  else renderMile2(filtered);
-}
-
-function downloadCSV() {
-  let csv = "";
-
-  if (currentMilestone === 'mile1') {
-    csv = "URN,Mobile,Date,Time,Status\n";
-    fullData.forEach(item => {
-      csv += `${item.urn},${item.mobile_number},${item.date},${item.time},${item.otp_validation}\n`;
-    });
-  } else {
-    csv = "URN,Account,Name,PAN,Status,Father,Mobile,Date,Time\n";
-    fullData.forEach(item => {
-      csv += `${item.urn},${item.account_type},${item.full_name},${item.pan_number},${item.pan_status},${item.father_name},${item.mobile_number},${item.date},${item.time}\n`;
-    });
-  }
-
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = "report.csv";
-  a.click();
+  else if (currentMilestone === 'mile2') renderMile2(filtered);
+  else renderMile3(filtered);
 }
 
 loadMile1();
