@@ -22,12 +22,10 @@ export default async function handler(req, res) {
 
     const {
       client_id,
-      surepass_token,
-      onexaura_apikey,
-      phone_number
+      surepass_token
     } = req.body || {};
 
-    if (!client_id || !surepass_token || !onexaura_apikey || !phone_number) {
+    if (!client_id || !surepass_token) {
       return res.status(400).json({
         success: false,
         error: "Missing required parameters"
@@ -57,7 +55,15 @@ export default async function handler(req, res) {
 
     const aadhaar = surepassData?.data?.aadhaar_xml_data;
 
+    if (!aadhaar) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid Aadhaar data"
+      });
+    }
+
     // 🔧 HELPERS
+
     const formatDOB = (dob) => {
       if (!dob) return null;
       const [y, m, d] = dob.split("-");
@@ -70,42 +76,7 @@ export default async function handler(req, res) {
       return g;
     };
 
-    const base64ToBuffer = (base64) => Buffer.from(base64, 'base64');
-
-    // 🔥 STEP 2: IMAGE UPLOAD
-    let image_url = null;
-
-    try {
-      if (aadhaar.profile_image) {
-
-        const buffer = base64ToBuffer(aadhaar.profile_image);
-
-        const formData = new FormData();
-        formData.append("phone_number", phone_number);
-
-        const blob = new Blob([buffer], { type: "image/jpeg" });
-        formData.append("file", blob, "aadhaar.jpg");
-
-        const uploadRes = await fetch(
-          'https://api.onexaura.com/wa/mediaupload',
-          {
-            method: 'POST',
-            headers: {
-              apikey: onexaura_apikey
-            },
-            body: formData
-          }
-        );
-
-        const uploadData = await uploadRes.json();
-
-        image_url = uploadData?.url || uploadData?.data?.url || null;
-      }
-    } catch (imgErr) {
-      console.error("⚠️ Image upload failed:", imgErr);
-    }
-
-    // 🔥 STEP 3: INSERT INTO DB
+    // 🔥 STEP 2: INSERT INTO DB (NO IMAGE)
     const { error: dbError } = await supabase
       .from('acc_mile_3')
       .insert([
@@ -113,12 +84,12 @@ export default async function handler(req, res) {
           full_name: aadhaar.full_name,
           care_of: aadhaar.care_of,
           father_name: aadhaar.father_name,
-          dob: aadhaar.dob, // DB format
+          dob: aadhaar.dob, // YYYY-MM-DD
           gender: formatGender(aadhaar.gender),
           masked_aadhaar: aadhaar.masked_aadhaar,
           full_address: aadhaar.full_address,
-          zip: aadhaar.zip,
-          profile_image: image_url
+          zip: aadhaar.zip
+          // ❌ profile_image removed
         }
       ]);
 
@@ -126,7 +97,7 @@ export default async function handler(req, res) {
       console.error("❌ DB Error:", dbError);
     }
 
-    // 🔥 FINAL RESPONSE
+    // 🔥 FINAL RESPONSE (NO IMAGE)
     return res.status(200).json({
       success: true,
       data: {
@@ -138,7 +109,6 @@ export default async function handler(req, res) {
         masked_aadhaar: aadhaar.masked_aadhaar,
         full_address: aadhaar.full_address,
         zip: aadhaar.zip,
-        profile_image: image_url,
         uniqueness_id: aadhaar.uniqueness_id,
         status: "Verified"
       }
