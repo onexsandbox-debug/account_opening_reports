@@ -1,4 +1,9 @@
-import { createClient } from '@supabase/supabase-js'; // optional if later needed
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 export default async function handler(req, res) {
 
@@ -20,7 +25,7 @@ export default async function handler(req, res) {
       surepass_token,
       onexaura_apikey,
       phone_number
-    } = req.body;
+    } = req.body || {};
 
     if (!client_id || !surepass_token || !onexaura_apikey || !phone_number) {
       return res.status(400).json({
@@ -29,7 +34,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 🔥 STEP 1: CALL SUREPASS API
+    // 🔥 STEP 1: CALL SUREPASS
     const surepassRes = await fetch(
       `https://sandbox.surepass.io/api/v1/digilocker/download-aadhaar/${client_id}`,
       {
@@ -52,84 +57,99 @@ export default async function handler(req, res) {
 
     const aadhaar = surepassData?.data?.aadhaar_xml_data;
 
-    // 🔥 STEP 2: TRANSFORM DATA
-
-    // DOB → DD-MM-YYYY
+    // 🔧 HELPERS
     const formatDOB = (dob) => {
       if (!dob) return null;
       const [y, m, d] = dob.split("-");
       return `${d}-${m}-${y}`;
     };
 
-    // Gender
     const formatGender = (g) => {
       if (g === "M") return "Male";
       if (g === "F") return "Female";
       return g;
     };
 
-    // 🔥 STEP 3: CONVERT BASE64 → FILE → UPLOAD
+    const base64ToBuffer = (base64) => Buffer.from(base64, 'base64');
 
-    const base64ToBuffer = (base64) => {
-      return Buffer.from(base64, 'base64');
-    };
-
+    // 🔥 STEP 2: IMAGE UPLOAD
     let image_url = null;
 
-    if (aadhaar.profile_image) {
+    try {
+      if (aadhaar.profile_image) {
 
-      const buffer = base64ToBuffer(aadhaar.profile_image);
+        const buffer = base64ToBuffer(aadhaar.profile_image);
 
-      const formData = new FormData();
-      formData.append("phone_number", phone_number);
+        const formData = new FormData();
+        formData.append("phone_number", phone_number);
 
-      // Create file blob
-      const blob = new Blob([buffer], { type: "image/jpeg" });
-      formData.append("file", blob, "aadhaar.jpg");
+        const blob = new Blob([buffer], { type: "image/jpeg" });
+        formData.append("file", blob, "aadhaar.jpg");
 
-      const uploadRes = await fetch(
-        'https://api.onexaura.com/wa/mediaupload',
-        {
-          method: 'POST',
-          headers: {
-            apikey: onexaura_apikey
-          },
-          body: formData
-        }
-      );
+        const uploadRes = await fetch(
+          'https://api.onexaura.com/wa/mediaupload',
+          {
+            method: 'POST',
+            headers: {
+              apikey: onexaura_apikey
+            },
+            body: formData
+          }
+        );
 
-      const uploadData = await uploadRes.json();
+        const uploadData = await uploadRes.json();
 
-      image_url = uploadData?.url || uploadData?.data?.url || null;
+        image_url = uploadData?.url || uploadData?.data?.url || null;
+      }
+    } catch (imgErr) {
+      console.error("⚠️ Image upload failed:", imgErr);
     }
 
-    // 🔥 STEP 4: FINAL RESPONSE (FLAT JSON)
+    // 🔥 STEP 3: INSERT INTO DB
+    const { error: dbError } = await supabase
+      .from('acc_mile_3')
+      .insert([
+        {
+          full_name: aadhaar.full_name,
+          care_of: aadhaar.care_of,
+          father_name: aadhaar.father_name,
+          dob: aadhaar.dob, // DB format
+          gender: formatGender(aadhaar.gender),
+          masked_aadhaar: aadhaar.masked_aadhaar,
+          full_address: aadhaar.full_address,
+          zip: aadhaar.zip,
+          profile_image: image_url
+        }
+      ]);
 
-    const response = {
-      full_name: aadhaar.full_name,
-      care_of: aadhaar.care_of,
-      father_name: aadhaar.father_name,
-      dob: formatDOB(aadhaar.dob),
-      gender: formatGender(aadhaar.gender),
-      masked_aadhaar: aadhaar.masked_aadhaar,
-      full_address: aadhaar.full_address,
-      zip: aadhaar.zip,
-      profile_image: image_url,
-      uniqueness_id: aadhaar.uniqueness_id,
-      status: "Verified"
-    };
+    if (dbError) {
+      console.error("❌ DB Error:", dbError);
+    }
 
+    // 🔥 FINAL RESPONSE
     return res.status(200).json({
       success: true,
-      data: response
+      data: {
+        full_name: aadhaar.full_name,
+        care_of: aadhaar.care_of,
+        father_name: aadhaar.father_name,
+        dob: formatDOB(aadhaar.dob),
+        gender: formatGender(aadhaar.gender),
+        masked_aadhaar: aadhaar.masked_aadhaar,
+        full_address: aadhaar.full_address,
+        zip: aadhaar.zip,
+        profile_image: image_url,
+        uniqueness_id: aadhaar.uniqueness_id,
+        status: "Verified"
+      }
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error:", err);
+
     return res.status(500).json({
       success: false,
-      error: "Internal Server Error",
-      details: err.message
+      error: err.message
     });
   }
 }
