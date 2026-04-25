@@ -149,6 +149,24 @@
       border-radius: 10px;
       font-size: 11px;
     }
+    /* ✅ Enable horizontal scroll */
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* ✅ Prevent all columns from wrapping */
+table th,
+table td {
+  white-space: nowrap;
+}
+
+/* ✅ Allow ONLY address column to wrap */
+.address-cell {
+  white-space: normal;
+  max-width: 250px;
+  word-break: break-word;
+}
   </style>
 </head>
 
@@ -188,10 +206,12 @@ if (!localStorage.getItem("user")) {
     <button class="btn btn-download" onclick="refreshData()">Refresh</button>
   </div>
 
+  <div class="table-container">
   <table>
     <thead id="tableHead"></thead>
     <tbody id="tableBody"></tbody>
   </table>
+</div>
 
 </div>
 
@@ -356,7 +376,7 @@ function renderMile3(data) {
         <td>${item.gender || '-'}</td>
         <td>${item.dob || '-'}</td>
         <td>${item.masked_aadhaar || '-'}</td>
-        <td>${item.full_address || '-'}</td>
+        <td class="address-cell">${item.full_address || '-'}</td>
         <td>${item.zip || '-'}</td>
 
         <!-- ✅ STATUS (NOW CORRECT) -->
