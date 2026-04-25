@@ -21,28 +21,24 @@ export default async function handler(req, res) {
   try {
 
     const {
-      profile_image,   // ✅ URL
+      profile_image,
       mobile_number,
       client_id
     } = req.body || {};
 
-    if (!profile_image) {
+    if (!profile_image || !mobile_number || !client_id) {
       return res.status(400).json({
         success: false,
-        error: "profile_image (URL) is required"
+        error: "profile_image, mobile_number and client_id are required"
       });
     }
 
-    // 🔥 INSERT INTO DB
+    // 🔥 UPDATE EXISTING RECORD
     const { data, error } = await supabase
       .from('acc_mile_3')
-      .insert([
-        {
-          profile_image,
-          mobile_number,
-          client_id
-        }
-      ])
+      .update({ profile_image })
+      .eq('mobile_number', mobile_number)
+      .eq('client_id', client_id)
       .select();
 
     if (error) {
@@ -52,10 +48,18 @@ export default async function handler(req, res) {
       });
     }
 
-    // ✅ RESPONSE
+    // ⚠️ If no rows updated
+    if (!data || data.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No matching record found for given mobile_number and client_id"
+      });
+    }
+
+    // ✅ SUCCESS
     return res.status(200).json({
       success: true,
-      message: "Image URL saved successfully",
+      message: "Profile image updated successfully",
       data: data[0]
     });
 
