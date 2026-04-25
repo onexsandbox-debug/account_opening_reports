@@ -169,6 +169,7 @@ if (!localStorage.getItem("user")) {
     <div class="active" onclick="switchMilestone('mile1', this)">Milestone 1: OTP Verification</div>
     <div onclick="switchMilestone('mile2', this)">Milestone 2: PAN Verification</div>
     <div onclick="switchMilestone('mile3', this)">Milestone 3: KYC Completed</div>
+    <div onclick="loadMile4()">Milestone 4: Personal Details</div>
   </div>
 </div>
 
@@ -218,8 +219,9 @@ function switchMilestone(type, el) {
 
 function refreshData() {
   if (currentMilestone === 'mile1') loadMile1();
-  else if (currentMilestone === 'mile2') loadMile2();
-  else loadMile3(); // ✅ FIXED
+else if (currentMilestone === 'mile2') loadMile2();
+else if (currentMilestone === 'mile3') loadMile3();
+else if (currentMilestone === 'mile4') loadMile4();
 }
 
 function loadMile1() {
@@ -381,6 +383,55 @@ function renderMile3(data) {
     `;
   });
 }
+  function loadMile4() {
+
+  currentMilestone = 'mile4';
+
+  document.getElementById("tableHead").innerHTML = `
+    <tr>
+      <th>S.No</th>
+      <th>URN</th>
+      <th>Mobile</th>
+      <th>Income</th>
+      <th>Marital Status</th>
+      <th>Account Type</th>
+      <th>Occupation</th>
+      <th>Home Ownership</th>
+      <th>Consent</th>
+      <th>Date</th>
+      <th>Time</th>
+    </tr>
+  `;
+
+  fetch('/api/getAccMile4')
+    .then(res => res.json())
+    .then(result => {
+      fullData = result.data || [];
+      renderMile4(fullData);
+    });
+}
+  function renderMile4(data) {
+  const table = document.getElementById("tableBody");
+  table.innerHTML = "";
+
+  data.forEach((item, i) => {
+    table.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${item.urn || '-'}</td>
+        <td>${item.mobile_number || '-'}</td>
+        <td>${item.income || '-'}</td>
+        <td>${item.marital_status || '-'}</td>
+        <td>${item.account_type || '-'}</td>
+        <td>${item.occupation || '-'}</td>
+        <td>${item.home_ownership || '-'}</td>
+        <td>${item.consent || '-'}</td>
+        <td>${item.date || '-'}</td>
+        <td>${item.time || '-'}</td>
+      </tr>
+    `;
+  });
+}
 
 function applyFilters() {
 
@@ -435,8 +486,50 @@ function applyFilters() {
 
   // ✅ render
   if (currentMilestone === 'mile1') renderMile1(filtered);
-  else if (currentMilestone === 'mile2') renderMile2(filtered);
-  else renderMile3(filtered);
+else if (currentMilestone === 'mile2') renderMile2(filtered);
+else if (currentMilestone === 'mile3') renderMile3(filtered);
+else if (currentMilestone === 'mile4') renderMile4(filtered);
+}
+  function downloadCSV(data = fullData) {
+
+  if (!data || data.length === 0) {
+    alert("No data available to download");
+    return;
+  }
+
+  // 🔥 Get headers dynamically
+  const headers = Object.keys(data[0]);
+
+  // 🔥 Convert JSON → CSV
+  const csvRows = [];
+
+  // Header row
+  csvRows.push(headers.join(","));
+
+  // Data rows
+  data.forEach(row => {
+    const values = headers.map(header => {
+      let val = row[header] ?? "";
+
+      // Escape commas & quotes
+      val = val.toString().replace(/"/g, '""');
+
+      return `"${val}"`;
+    });
+
+    csvRows.push(values.join(","));
+  });
+
+  const csvString = csvRows.join("\n");
+
+  // 🔥 Download file
+  const blob = new Blob([csvString], { type: "text/csv" });
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.setAttribute("href", url);
+  a.setAttribute("download", `${currentMilestone}_report.csv`);
+  a.click();
 }
 
 loadMile1();
