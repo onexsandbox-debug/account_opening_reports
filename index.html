@@ -319,6 +319,7 @@ function loadMile3() {
   document.getElementById("tableHead").innerHTML = `
     <tr>
       <th>S.No</th>
+      <th>Mobile</th>
       <th>Full Name</th>
       <th>Gender</th>
       <th>DOB</th>
@@ -328,6 +329,7 @@ function loadMile3() {
       <th>Status</th>
       <th>Date</th>
       <th>Time</th>
+      <th>Image</th>
     </tr>
   `;
 
@@ -346,17 +348,28 @@ function renderMile3(data) {
   data.forEach((item, i) => {
     table.innerHTML += `
       <tr>
-        <td>${i+1}</td>
-        <td>${item.full_name}</td>
-        <td>${item.gender}</td>
-        <td>${item.dob}</td>
-        <td>${item.masked_aadhaar}</td>
-        <td>${item.full_address}</td>
-        <td>${item.zip}</td>
-        <td><span class="badge-success">${item.status}</span></td>
-        <td>${item.date}</td>
-        <td>${item.time}</td>
-      </tr>
+  <td>${i+1}</td>
+  <td>${item.full_name || '-'}</td>
+  <td>${item.mobile_number || '-'}</td> <!-- ✅ ADDED -->
+  <td>${item.gender || '-'}</td>
+  <td>${item.dob || '-'}</td>
+  <td>${item.masked_aadhaar || '-'}</td>
+  <td>${item.full_address || '-'}</td>
+  <td>${item.zip || '-'}</td>
+
+  <!-- ✅ IMAGE COLUMN -->
+  <td>
+    ${
+      item.profile_image
+        ? `<a href="${item.profile_image}" target="_blank">View</a>`
+        : '-'
+    }
+  </td>
+
+  <td><span class="badge-success">${item.status || 'Verified'}</span></td>
+  <td>${item.date || '-'}</td>
+  <td>${item.time || '-'}</td>
+</tr>
     `;
   });
 }
