@@ -381,16 +381,40 @@ function renderMile3(data) {
 }
 
 function applyFilters() {
-  const mobile = document.getElementById("mobile").value;
-  const urn = document.getElementById("urn").value;
+  const mobile = document.getElementById("mobile").value.trim();
+  const urn = document.getElementById("urn").value.trim();
   const date = document.getElementById("date").value;
 
-  let filtered = fullData.filter(item =>
-    (!mobile || (item.mobile_number && item.mobile_number.includes(mobile))) &&
-    (!urn || (item.urn && item.urn.includes(urn))) &&
-    (!date || item.date === date)
-  );
+  let filtered = fullData.filter(item => {
 
+    let matchMobile = true;
+    let matchUrn = true;
+    let matchDate = true;
+
+    // ✅ MOBILE FILTER (safe for all milestones)
+    if (mobile) {
+      matchMobile = item.mobile_number
+        ? item.mobile_number.includes(mobile)
+        : true;
+    }
+
+    // ✅ URN FILTER (only if exists)
+    if (urn) {
+      matchUrn = item.urn
+        ? item.urn.includes(urn)
+        : true;
+    }
+
+    // ✅ DATE FILTER (normalize format)
+    if (date) {
+      const formattedDate = new Date(date).toLocaleDateString('en-GB');
+      matchDate = item.date === formattedDate;
+    }
+
+    return matchMobile && matchUrn && matchDate;
+  });
+
+  // ✅ Render based on milestone
   if (currentMilestone === 'mile1') renderMile1(filtered);
   else if (currentMilestone === 'mile2') renderMile2(filtered);
   else renderMile3(filtered);
