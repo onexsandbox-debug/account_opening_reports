@@ -28,7 +28,8 @@ export default async function handler(req, res) {
         time,
         created_at,
         mobile_number,
-        profile_image
+        profile_image,
+        urn
       `)
       .order('created_at', { ascending: false });
 
@@ -62,6 +63,7 @@ export default async function handler(req, res) {
       }
 
       return {
+        urn: item.urn || null,
         full_name: item.full_name,
         gender: item.gender,
         dob: item.dob,
