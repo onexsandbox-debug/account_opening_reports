@@ -16,7 +16,20 @@ export default async function handler(req, res) {
 
     const { data, error } = await supabase
       .from('acc_mile_3')
-      .select('*')
+      .select(`
+        full_name,
+        gender,
+        dob,
+        masked_aadhaar,
+        full_address,
+        zip,
+        status,
+        date,
+        time,
+        created_at,
+        mobile_number,
+        profile_image
+      `)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -32,7 +45,6 @@ export default async function handler(req, res) {
       let date = item.date;
       let time = item.time;
 
-      // fallback if not present
       if (!date || !time) {
         const dt = new Date(item.created_at);
 
@@ -50,7 +62,15 @@ export default async function handler(req, res) {
       }
 
       return {
-        ...item,
+        full_name: item.full_name,
+        gender: item.gender,
+        dob: item.dob,
+        masked_aadhaar: item.masked_aadhaar,
+        full_address: item.full_address,
+        zip: item.zip,
+        status: item.status || "Verified",
+        mobile_number: item.mobile_number || null,     // ✅ ensured
+        profile_image: item.profile_image || null,     // ✅ ensured (URL)
         date,
         time
       };
