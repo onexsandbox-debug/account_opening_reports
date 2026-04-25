@@ -23,13 +23,14 @@ export default async function handler(req, res) {
     const {
       client_id,
       surepass_token,
-      mobile_number   // ✅ NEW
+      mobile_number,   // ✅ NEW
+      urn   // ✅ NEW
     } = req.body || {};
 
-    if (!client_id || !surepass_token || !mobile_number) {
+    if (!client_id || !surepass_token || !mobile_number || !urn) {
       return res.status(400).json({
         success: false,
-        error: "client_id, surepass_token and mobile_number are required"
+        error: "client_id, surepass_token, mobile_number and URN are required"
       });
     }
 
@@ -81,6 +82,7 @@ export default async function handler(req, res) {
       .from('acc_mile_3')
       .insert([
         {
+          urn: urn,
           full_name: aadhaar.full_name,
           care_of: aadhaar.care_of,
           father_name: aadhaar.father_name,
@@ -95,13 +97,18 @@ export default async function handler(req, res) {
       ]);
 
     if (dbError) {
-      console.error("❌ DB Error:", dbError);
-    }
+  return res.status(500).json({
+    success: false,
+    error: "Database insert failed",
+    details: dbError.message
+  });
+}
 
     // 🔥 FINAL RESPONSE (WITH BASE64)
     return res.status(200).json({
       success: true,
       data: {
+        urn: urn,   // ✅ RETURN BACK
         full_name: aadhaar.full_name,
         care_of: aadhaar.care_of,
         father_name: aadhaar.father_name,
