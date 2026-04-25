@@ -7,7 +7,6 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
 
-  // ✅ CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
@@ -27,47 +26,53 @@ export default async function handler(req, res) {
       });
     }
 
-    // ✅ Format Date & Time (IST safe)
     const formatted = (data || []).map(item => {
 
-      let date = item.date;
-      let time = item.time;
+      const dt = new Date(item.created_at);
 
-      if (!date || !time) {
-        const dt = new Date(item.created_at);
+      const date = dt.toLocaleDateString('en-GB', {
+        timeZone: 'Asia/Kolkata'
+      });
 
-        date = dt.toLocaleDateString('en-GB', {
-          timeZone: 'Asia/Kolkata'
-        });
-
-        time = dt.toLocaleTimeString('en-IN', {
-          timeZone: 'Asia/Kolkata',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true
-        });
-      }
+      const time = dt.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
 
       return {
+        // 🔥 CORE IDENTIFIERS
         urn: item.urn,
         mobile_number: item.mobile_number,
+
+        // 🔥 MILESTONE 1
+        otp_status: item.otp_status,
+
+        // 🔥 MILESTONE 2
+        account_type: item.account_type,
         full_name: item.full_name,
         pan_number: item.pan_number,
         pan_status: item.pan_status,
         father_name: item.father_name,
+
+        // 🔥 MILESTONE 3
         gender: item.gender,
         dob: item.dob,
         masked_aadhaar: item.masked_aadhaar,
         full_address: item.full_address,
         zip: item.zip,
+
+        // 🔥 MILESTONE 4
         income: item.income,
         marital_status: item.marital_status,
         occupation: item.occupation,
         home_ownership: item.home_ownership,
         consent: item.consent,
-        otp_status: item.otp_status,
-        account_type: item.account_type,
+
+        // 🔥 META
+        created_at: item.created_at,
         date,
         time
       };
