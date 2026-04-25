@@ -393,45 +393,43 @@ function applyFilters() {
     formattedDate = `${d}/${m}/${y}`;
   }
 
-  console.log("INPUT:", { mobile, urn, formattedDate });
-  console.log("DATA:", fullData);
-
   let filtered = fullData.filter(item => {
 
-    // 🔥 Safe values
-    const itemMobile = (item.mobile_number || item.mobile || "").toString();
+    // ✅ SUPPORT ALL POSSIBLE FIELD NAMES
+    const itemMobile = (
+      item.mobile_number ||
+      item.mobile ||
+      item.phone_number ||
+      ""
+    ).toString();
+
     const itemUrn = (item.urn || "").toString();
-    const itemDate = (item.date || "").replace(/-/g, "/");
+
+    const itemDate = (item.date || "")
+      .replace(/-/g, "/")
+      .trim();
 
     let matchMobile = true;
     let matchUrn = true;
     let matchDate = true;
 
-    // ✅ MOBILE FILTER
+    // ✅ MOBILE
     if (mobile) {
       matchMobile = itemMobile.includes(mobile);
     }
 
-    // ✅ URN FILTER (skip if not present)
+    // ✅ URN
     if (urn) {
       matchUrn = itemUrn.includes(urn);
     }
 
-    // ✅ DATE FILTER (flexible match)
+    // ✅ DATE
     if (formattedDate) {
       matchDate = itemDate.includes(formattedDate);
     }
 
     return matchMobile && matchUrn && matchDate;
   });
-
-  console.log("FILTERED RESULT:", filtered);
-
-  // 🔥 IMPORTANT: fallback if nothing found
-  if (filtered.length === 0) {
-    console.warn("No match — showing full data");
-    filtered = fullData;
-  }
 
   // ✅ render
   if (currentMilestone === 'mile1') renderMile1(filtered);
