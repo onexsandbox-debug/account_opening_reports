@@ -348,28 +348,34 @@ function renderMile3(data) {
   data.forEach((item, i) => {
     table.innerHTML += `
       <tr>
-  <td>${i+1}</td>
-  <td>${item.full_name || '-'}</td>
-  <td>${item.mobile_number || '-'}</td> <!-- ✅ ADDED -->
-  <td>${item.gender || '-'}</td>
-  <td>${item.dob || '-'}</td>
-  <td>${item.masked_aadhaar || '-'}</td>
-  <td>${item.full_address || '-'}</td>
-  <td>${item.zip || '-'}</td>
+        <td>${i+1}</td>
+        <td>${item.mobile_number || '-'}</td> <!-- ✅ FIXED POSITION -->
+        <td>${item.full_name || '-'}</td>
+        <td>${item.gender || '-'}</td>
+        <td>${item.dob || '-'}</td>
+        <td>${item.masked_aadhaar || '-'}</td>
+        <td>${item.full_address || '-'}</td>
+        <td>${item.zip || '-'}</td>
 
-  <!-- ✅ IMAGE COLUMN -->
-  <td>
-    ${
-      item.profile_image
-        ? `<a href="${item.profile_image}" target="_blank">View</a>`
-        : '-'
-    }
-  </td>
+        <!-- ✅ STATUS (NOW CORRECT) -->
+        <td>
+          <span class="badge-success">
+            ${item.status || 'Verified'}
+          </span>
+        </td>
 
-  <td><span class="badge-success">${item.status || 'Verified'}</span></td>
-  <td>${item.date || '-'}</td>
-  <td>${item.time || '-'}</td>
-</tr>
+        <td>${item.date || '-'}</td>
+        <td>${item.time || '-'}</td>
+
+        <!-- ✅ IMAGE LAST -->
+        <td>
+          ${
+            item.profile_image
+              ? `<a href="${item.profile_image}" target="_blank">View</a>`
+              : '-'
+          }
+        </td>
+      </tr>
     `;
   });
 }
