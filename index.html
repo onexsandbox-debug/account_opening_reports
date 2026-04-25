@@ -170,6 +170,7 @@ if (!localStorage.getItem("user")) {
     <div onclick="switchMilestone('mile2', this)">Milestone 2: PAN Verification</div>
     <div onclick="switchMilestone('mile3', this)">Milestone 3: KYC Completed</div>
     <div onclick="switchMilestone('mile4', this)">Milestone 4: Personal Details</div>
+    <div onclick="switchMilestone('final', this)">Final Account Details</div>
   </div>
 </div>
 
@@ -216,6 +217,7 @@ function switchMilestone(type, el) {
 else if (type === 'mile2') loadMile2();
 else if (type === 'mile3') loadMile3();
 else if (type === 'mile4') loadMile4();
+else if (mile === 'final') loadFinalReport();
 }
 
 function refreshData() {
@@ -384,6 +386,7 @@ function renderMile3(data) {
     `;
   });
 }
+  // ✅ NEW MILESTONE 4
   function loadMile4() {
 
   currentMilestone = 'mile4';
@@ -433,14 +436,83 @@ function renderMile3(data) {
     `;
   });
 }
+// ✅ NEW MILESTONE 5
 
+function loadFinalReport() {
+
+  document.getElementById("tableHead").innerHTML = `
+    <tr>
+      <th>S.No</th>
+      <th>URN</th>
+      <th>Mobile</th>
+      <th>OTP</th>
+      <th>Account Type</th>
+      <th>Name</th>
+      <th>PAN</th>
+      <th>PAN Status</th>
+      <th>Father</th>
+      <th>Gender</th>
+      <th>DOB</th>
+      <th>Aadhaar</th>
+      <th>Address</th>
+      <th>ZIP</th>
+      <th>Income</th>
+      <th>Marital</th>
+      <th>Occupation</th>
+      <th>Home</th>
+      <th>Consent</th>
+      <th>Date</th>
+      <th>Time</th>
+    </tr>
+  `;
+
+  fetch('/api/getFinalReport')
+    .then(res => res.json())
+    .then(result => {
+      fullData = result.data || [];
+      renderFinalReport(fullData);
+    });
+}
+  function renderFinalReport(data) {
+
+  const table = document.getElementById("tableBody");
+  table.innerHTML = "";
+
+  data.forEach((item, i) => {
+    table.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${item.urn || '-'}</td>
+        <td>${item.mobile_number || '-'}</td>
+        <td>${item.otp_status || '-'}</td>
+        <td>${item.account_type || '-'}</td>
+        <td>${item.full_name || '-'}</td>
+        <td>${item.pan_number || '-'}</td>
+        <td>${item.pan_status || '-'}</td>
+        <td>${item.father_name || '-'}</td>
+        <td>${item.gender || '-'}</td>
+        <td>${item.dob || '-'}</td>
+        <td>${item.masked_aadhaar || '-'}</td>
+        <td class="address-cell">${item.full_address || '-'}</td>
+        <td>${item.zip || '-'}</td>
+        <td>${item.income || '-'}</td>
+        <td>${item.marital_status || '-'}</td>
+        <td>${item.occupation || '-'}</td>
+        <td>${item.home_ownership || '-'}</td>
+        <td>${item.consent || '-'}</td>
+        <td>${item.date || '-'}</td>
+        <td>${item.time || '-'}</td>
+      </tr>
+    `;
+  });
+}
+  
 function applyFilters() {
 
-  const mobile = document.getElementById("mobile").value.trim();
-  const urn = document.getElementById("urn").value.trim();
+  const mobile = document.getElementById("mobile").value.trim().toLowerCase();
+  const urn = document.getElementById("urn").value.trim().toLowerCase();
   const dateInput = document.getElementById("date").value;
 
-  // 🔥 Convert YYYY-MM-DD → DD/MM/YYYY
   let formattedDate = "";
   if (dateInput) {
     const [y, m, d] = dateInput.split("-");
@@ -449,47 +521,31 @@ function applyFilters() {
 
   let filtered = fullData.filter(item => {
 
-    // ✅ SUPPORT ALL POSSIBLE FIELD NAMES
     const itemMobile = (
       item.mobile_number ||
       item.mobile ||
       item.phone_number ||
       ""
-    ).toString();
+    ).toString().trim().toLowerCase();
 
-    const itemUrn = (item.urn || "").toString();
+    const itemUrn = (item.urn || "").toString().trim().toLowerCase();
 
     const itemDate = (item.date || "")
       .replace(/-/g, "/")
       .trim();
 
-    let matchMobile = true;
-    let matchUrn = true;
-    let matchDate = true;
-
-    // ✅ MOBILE
-    if (mobile) {
-      matchMobile = itemMobile.includes(mobile);
-    }
-
-    // ✅ URN
-    if (urn) {
-      matchUrn = itemUrn.includes(urn);
-    }
-
-    // ✅ DATE
-    if (formattedDate) {
-      matchDate = itemDate.includes(formattedDate);
-    }
+    let matchMobile = !mobile || itemMobile.includes(mobile);
+    let matchUrn = !urn || itemUrn.includes(urn);
+    let matchDate = !formattedDate || itemDate === formattedDate;
 
     return matchMobile && matchUrn && matchDate;
   });
 
-  // ✅ render
   if (currentMilestone === 'mile1') renderMile1(filtered);
-else if (currentMilestone === 'mile2') renderMile2(filtered);
-else if (currentMilestone === 'mile3') renderMile3(filtered);
-else if (currentMilestone === 'mile4') renderMile4(filtered);
+  else if (currentMilestone === 'mile2') renderMile2(filtered);
+  else if (currentMilestone === 'mile3') renderMile3(filtered);
+  else if (currentMilestone === 'mile4') renderMile4(filtered);
+  else if (currentMilestone === 'final') renderFinalReport(filtered);
 }
   function downloadCSV(data = fullData) {
 
