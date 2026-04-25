@@ -319,6 +319,7 @@ function loadMile3() {
   document.getElementById("tableHead").innerHTML = `
     <tr>
       <th>S.No</th>
+      <th>URN</th>
       <th>Mobile</th>
       <th>Full Name</th>
       <th>Gender</th>
@@ -349,6 +350,7 @@ function renderMile3(data) {
     table.innerHTML += `
       <tr>
         <td>${i+1}</td>
+        <td>${item.urn || '-'}</td> <!-- ✅ URN FIRST -->
         <td>${item.mobile_number || '-'}</td> <!-- ✅ FIXED POSITION -->
         <td>${item.full_name || '-'}</td>
         <td>${item.gender || '-'}</td>
