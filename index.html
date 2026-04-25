@@ -383,7 +383,7 @@ function renderMile3(data) {
 function applyFilters() {
   const mobile = document.getElementById("mobile").value.trim();
   const urn = document.getElementById("urn").value.trim();
-  const date = document.getElementById("date").value;
+  const date = document.getElementById("date").value.trim();
 
   let filtered = fullData.filter(item => {
 
@@ -391,30 +391,29 @@ function applyFilters() {
     let matchUrn = true;
     let matchDate = true;
 
-    // ✅ MOBILE FILTER (safe for all milestones)
+    // ✅ MOBILE
     if (mobile) {
       matchMobile = item.mobile_number
         ? item.mobile_number.includes(mobile)
         : true;
     }
 
-    // ✅ URN FILTER (only if exists)
+    // ✅ URN
     if (urn) {
       matchUrn = item.urn
         ? item.urn.includes(urn)
         : true;
     }
 
-    // ✅ DATE FILTER (normalize format)
+    // ✅ DATE (FIXED)
     if (date) {
-      const formattedDate = new Date(date).toLocaleDateString('en-GB');
-      matchDate = item.date === formattedDate;
+      matchDate = item.date === date;
     }
 
     return matchMobile && matchUrn && matchDate;
   });
 
-  // ✅ Render based on milestone
+  // ✅ Render
   if (currentMilestone === 'mile1') renderMile1(filtered);
   else if (currentMilestone === 'mile2') renderMile2(filtered);
   else renderMile3(filtered);
