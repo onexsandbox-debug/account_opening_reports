@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     }
 
     // 🔥 STEP 2: RUN RAW SQL JOIN
-    const { error: insertError } = await supabase.rpc('build_final_report');
+    const { error: insertError } = await supabase.rpc('build_final_account_details');
 
     if (insertError) {
       return res.status(500).json({
