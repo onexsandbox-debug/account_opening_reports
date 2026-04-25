@@ -386,42 +386,52 @@ function applyFilters() {
   const urn = document.getElementById("urn").value.trim();
   const dateInput = document.getElementById("date").value;
 
-  // 🔥 convert YYYY-MM-DD → DD/MM/YYYY
+  // 🔥 Convert YYYY-MM-DD → DD/MM/YYYY
   let formattedDate = "";
   if (dateInput) {
-    const [year, month, day] = dateInput.split("-");
-    formattedDate = `${day}/${month}/${year}`;
+    const [y, m, d] = dateInput.split("-");
+    formattedDate = `${d}/${m}/${y}`;
   }
 
+  console.log("INPUT:", { mobile, urn, formattedDate });
+  console.log("DATA:", fullData);
+
   let filtered = fullData.filter(item => {
+
+    // 🔥 Safe values
+    const itemMobile = (item.mobile_number || item.mobile || "").toString();
+    const itemUrn = (item.urn || "").toString();
+    const itemDate = (item.date || "").replace(/-/g, "/");
 
     let matchMobile = true;
     let matchUrn = true;
     let matchDate = true;
 
-    // ✅ MOBILE
+    // ✅ MOBILE FILTER
     if (mobile) {
-      matchMobile = (item.mobile_number || "")
-        .toString()
-        .includes(mobile);
+      matchMobile = itemMobile.includes(mobile);
     }
 
-    // ✅ URN
+    // ✅ URN FILTER (skip if not present)
     if (urn) {
-      matchUrn = (item.urn || "")
-        .toString()
-        .includes(urn);
+      matchUrn = itemUrn.includes(urn);
     }
 
-    // ✅ DATE (FIXED PROPERLY)
+    // ✅ DATE FILTER (flexible match)
     if (formattedDate) {
-      matchDate = (item.date || "") === formattedDate;
+      matchDate = itemDate.includes(formattedDate);
     }
 
     return matchMobile && matchUrn && matchDate;
   });
 
-  console.log("FILTERED:", filtered);
+  console.log("FILTERED RESULT:", filtered);
+
+  // 🔥 IMPORTANT: fallback if nothing found
+  if (filtered.length === 0) {
+    console.warn("No match — showing full data");
+    filtered = fullData;
+  }
 
   // ✅ render
   if (currentMilestone === 'mile1') renderMile1(filtered);
