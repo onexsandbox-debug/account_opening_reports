@@ -169,7 +169,7 @@ if (!localStorage.getItem("user")) {
     <div class="active" onclick="switchMilestone('mile1', this)">Milestone 1: OTP Verification</div>
     <div onclick="switchMilestone('mile2', this)">Milestone 2: PAN Verification</div>
     <div onclick="switchMilestone('mile3', this)">Milestone 3: KYC Completed</div>
-    <div onclick="loadMile4()">Milestone 4: Personal Details</div>
+    <div onclick="switchMilestone('mile4', this)">Milestone 4: Personal Details</div>
   </div>
 </div>
 
@@ -213,8 +213,9 @@ function switchMilestone(type, el) {
   el.classList.add('active');
 
   if (type === 'mile1') loadMile1();
-  else if (type === 'mile2') loadMile2();
-  else loadMile3(); // ✅ FIXED
+else if (type === 'mile2') loadMile2();
+else if (type === 'mile3') loadMile3();
+else if (type === 'mile4') loadMile4();
 }
 
 function refreshData() {
