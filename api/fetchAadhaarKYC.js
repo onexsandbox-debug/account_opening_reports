@@ -22,13 +22,14 @@ export default async function handler(req, res) {
 
     const {
       client_id,
-      surepass_token
+      surepass_token,
+      mobile_number   // ✅ NEW
     } = req.body || {};
 
-    if (!client_id || !surepass_token) {
+    if (!client_id || !surepass_token || !mobile_number) {
       return res.status(400).json({
         success: false,
-        error: "Missing required parameters"
+        error: "client_id, surepass_token and mobile_number are required"
       });
     }
 
@@ -63,7 +64,6 @@ export default async function handler(req, res) {
     }
 
     // 🔧 HELPERS
-
     const formatDOB = (dob) => {
       if (!dob) return null;
       const [y, m, d] = dob.split("-");
@@ -88,8 +88,9 @@ export default async function handler(req, res) {
           gender: formatGender(aadhaar.gender),
           masked_aadhaar: aadhaar.masked_aadhaar,
           full_address: aadhaar.full_address,
-          zip: aadhaar.zip
-          // ❌ profile_image removed
+          zip: aadhaar.zip,
+          mobile_number: mobile_number,  // ✅ NEW
+          client_id: client_id           // ✅ NEW
         }
       ]);
 
@@ -97,7 +98,7 @@ export default async function handler(req, res) {
       console.error("❌ DB Error:", dbError);
     }
 
-    // 🔥 FINAL RESPONSE (NO IMAGE)
+    // 🔥 FINAL RESPONSE (WITH BASE64)
     return res.status(200).json({
       success: true,
       data: {
@@ -109,7 +110,10 @@ export default async function handler(req, res) {
         masked_aadhaar: aadhaar.masked_aadhaar,
         full_address: aadhaar.full_address,
         zip: aadhaar.zip,
+        profile_image: aadhaar.profile_image, // ✅ BASE64 RETURN
         uniqueness_id: aadhaar.uniqueness_id,
+        mobile_number: mobile_number,
+        client_id: client_id,
         status: "Verified"
       }
     });
