@@ -171,6 +171,7 @@ if (!localStorage.getItem("user")) {
     <div onclick="switchMilestone('mile3', this)">Milestone 3: KYC Completed</div>
     <div onclick="switchMilestone('mile4', this)">Milestone 4: Personal Details</div>
     <div onclick="switchMilestone('final', this)">Final Account Details</div>
+    <div onclick="switchMilestone('analytics', this)">Analytical Report</div>
   </div>
 </div>
 
@@ -195,6 +196,25 @@ if (!localStorage.getItem("user")) {
     <tbody id="tableBody"></tbody>
   </table>
 
+  <!-- ✅ ANALYTICS SECTION (ADD HERE) -->
+<div id="analyticsSection" style="display:none; margin-top:20px;">
+
+  <!-- ✅ STEP 6A (ADD HERE) -->
+  <div id="kpiBox" style="display:flex; gap:20px; margin-bottom:15px;">
+    <div>OTP → PAN Drop: <b id="drop1"></b></div>
+    <div>PAN → KYC Drop: <b id="drop2"></b></div>
+    <div>KYC → Details Drop: <b id="drop3"></b></div>
+    <div>Details → Final Drop: <b id="drop4"></b></div>
+  </div>
+
+  <!-- Funnel Chart -->
+  <canvas id="funnelChart" height="120"></canvas>
+
+  <!-- Trend Chart -->
+  <canvas id="trendChart" style="margin-top:30px;"></canvas>
+
+</div>
+
 </div>
 
 <script>
@@ -208,6 +228,8 @@ function logout() {
 }
 
 function switchMilestone(type, el) {
+   // ✅ ALWAYS HIDE ANALYTICS FIRST
+  document.getElementById("analyticsSection").style.display = "none";
   currentMilestone = type;
 
   document.querySelectorAll('.menu div').forEach(d => d.classList.remove('active'));
@@ -218,6 +240,7 @@ else if (type === 'mile2') loadMile2();
 else if (type === 'mile3') loadMile3();
 else if (type === 'mile4') loadMile4();
 else if (type === 'final') loadFinalReport();
+else if (type === 'analytics') loadAnalytics();
 }
 
 function refreshData() {
@@ -507,6 +530,177 @@ function loadFinalReport() {
     `;
   });
 }
+
+function renderFinalReport(data) {
+  ...
+}
+
+// ================================
+// 📊 ANALYTICS MODULE
+// ================================
+
+// ✅ LOAD ANALYTICS DASHBOARD
+function loadAnalytics() {
+
+  currentMilestone = 'analytics';
+
+  // Clear table
+  document.getElementById("tableHead").innerHTML = "";
+  document.getElementById("tableBody").innerHTML = "";
+
+  // Show analytics section
+  document.getElementById("analyticsSection").style.display = "block";
+
+  // Load charts
+  loadFunnelChart();
+  loadTrendChart();
+}
+
+// ================================
+// 📊 FUNNEL CHART
+// ================================
+async function loadFunnelChart() {
+
+  try {
+    const res = await fetch('/api/getFunnel');
+    const result = await res.json();
+
+    if (!result.success || !result.data) {
+      console.error("Funnel API error", result);
+      return;
+    }
+
+    const d = result.data;
+    const ctx = document.getElementById("funnelChart");
+
+    if (!ctx) {
+      console.error("funnelChart not found");
+      return;
+    }
+
+    // Destroy previous chart
+    if (window.funnelInstance) {
+      window.funnelInstance.destroy();
+    }
+
+    window.funnelInstance = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['M1 OTP', 'M2 PAN', 'M3 KYC', 'M4 Details', 'Final'],
+    datasets: [{
+      label: 'Users',
+      data: [d.mile1, d.mile2, d.mile3, d.mile4, d.final]
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+
+      // ✅ ADD LABELS
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+
+            const data = [d.mile1, d.mile2, d.mile3, d.mile4, d.final];
+            const index = context.dataIndex;
+
+            if (index === 0) return `Users: ${context.raw}`;
+
+            const prev = data[index - 1];
+            const curr = data[index];
+
+            const conversion = prev ? ((curr / prev) * 100).toFixed(1) : 0;
+
+            return `Users: ${curr} (${conversion}% from prev)`;
+          }
+        }
+      }
+    }
+  }
+});
+
+    // Update KPIs
+    showDropOff(d);
+
+  } catch (err) {
+    console.error("Funnel Chart Error:", err);
+  }
+}
+
+// ================================
+// 📊 DROP-OFF KPI
+// ================================
+function showDropOff(d) {
+
+  const calc = (a, b) => {
+    if (!a || a === 0) return '0%';
+    return (((a - b) / a) * 100).toFixed(1) + '%';
+  };
+
+  const el1 = document.getElementById("drop1");
+  const el2 = document.getElementById("drop2");
+  const el3 = document.getElementById("drop3");
+  const el4 = document.getElementById("drop4");
+
+  if (el1) el1.innerText = calc(d.mile1, d.mile2);
+  if (el2) el2.innerText = calc(d.mile2, d.mile3);
+  if (el3) el3.innerText = calc(d.mile3, d.mile4);
+  if (el4) el4.innerText = calc(d.mile4, d.final);
+}
+
+// ================================
+// 📈 TREND CHART
+// ================================
+async function loadTrendChart() {
+
+  try {
+    const res = await fetch('/api/getTrend');
+    const result = await res.json();
+
+    if (!result.success || !result.data) {
+      console.error("Trend API error", result);
+      return;
+    }
+
+    const labels = result.data.map(x => x.date);
+    const values = result.data.map(x => x.users);
+
+    const ctx = document.getElementById("trendChart");
+
+    if (!ctx) {
+      console.error("trendChart not found");
+      return;
+    }
+
+    // Destroy previous chart
+    if (window.trendInstance) {
+      window.trendInstance.destroy();
+    }
+
+    window.trendInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Users per Day',
+          data: values,
+          fill: false,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+
+  } catch (err) {
+    console.error("Trend Chart Error:", err);
+  }
+}
   
 function applyFilters() {
 
@@ -593,6 +787,6 @@ function applyFilters() {
 loadMile1();
 
 </script>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
